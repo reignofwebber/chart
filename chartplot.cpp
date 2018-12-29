@@ -120,6 +120,8 @@ void ChartPlot::addVariable(const VariateData &data)
         QLineSeries *series = m_digitalSeriesPool.back();
         m_digitalSeriesPool.pop_back();
         m_digitalSeriesMap[data.id] = series;
+        QValueAxis *axis = dynamic_cast<QValueAxis *>(m_digitalChart->axisY());
+        m_digitalOffsetMap[data.id] = (4 - m_digitalSeriesPool.size())*(axis->max() - axis->min()) / (axis->tickCount() - 1);
     }
     else
     {
@@ -164,13 +166,12 @@ void ChartPlot::addPoint(QString id, qreal time, qreal val)
     {
         if(m_digitalSeriesMap[id]->count() > 0)
         {
-            qDebug() << m_digitalSeriesMap[id]->count();
             m_digitalSeriesMap[id]->append(time, m_digitalSeriesMap[id]->at(m_digitalSeriesMap[id]->count() - 1).y());
-            m_digitalSeriesMap[id]->append(time, val);
+            m_digitalSeriesMap[id]->append(time, val + m_digitalOffsetMap[id]);
         }
         else
         {
-            m_digitalSeriesMap[id]->append(time, val);
+            m_digitalSeriesMap[id]->append(time, val + m_digitalOffsetMap[id]);
         }
 
         if(m_digitalSeriesMap[id]->count() * 2 - 1 > m_totoalSeconds)

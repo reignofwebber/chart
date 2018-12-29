@@ -61,6 +61,7 @@ private:
 
     QMap<QString, QLineSeries *> m_analogSeriesMap;
     QMap<QString, QLineSeries *> m_digitalSeriesMap;
+    QMap<QString, qreal> m_digitalOffsetMap;
 
     // analog
     // y轴最小值
