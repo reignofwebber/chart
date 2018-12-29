@@ -3,7 +3,7 @@
 #include <QThread>
 #include "testthread.h"
 
-ChartPanel::ChartPanel(QWidget *parent)
+ChartPanel1::ChartPanel1(QWidget *parent)
     : QWidget(parent),m_tickCount(5), m_totoalSeconds(60 * 5), m_minY(0), m_maxY(1)
 {
     QVBoxLayout *layout = new QVBoxLayout;
@@ -92,18 +92,18 @@ ChartPanel::ChartPanel(QWidget *parent)
 
     setLayout(layout);
     //////////////////////////////////////////////////////////////////////////////
-    QThread *thread = new QThread;
-    Test *test = new Test(this);
-    test->moveToThread(thread);
-    connect(thread, SIGNAL(started()), test, SLOT(process()));
-    connect(test, SIGNAL(finished()), thread, SLOT(quit()));
-    connect(test, SIGNAL(finished()), thread, SLOT(deleteLater()));
-    connect(thread, SIGNAL(finished()), thread, SLOT(deleteLater()));
-    thread->start();
+//    QThread *thread = new QThread;
+//    Test *test = new Test(this);
+//    test->moveToThread(thread);
+//    connect(thread, SIGNAL(started()), test, SLOT(process()));
+//    connect(test, SIGNAL(finished()), thread, SLOT(quit()));
+//    connect(test, SIGNAL(finished()), thread, SLOT(deleteLater()));
+//    connect(thread, SIGNAL(finished()), thread, SLOT(deleteLater()));
+//    thread->start();
     //////////////////////////////////////////////////////////////////////////////
 }
 
-void ChartPanel::addPoint(qreal time, qreal val)
+void ChartPanel1::addPoint(qreal time, qreal val)
 {
 
     if(val < m_minY)
@@ -142,18 +142,18 @@ void ChartPanel::addPoint(qreal time, qreal val)
 }
 
 
-void ChartPanel::updateYValue(qreal curMin, qreal curMax)
+void ChartPanel1::updateYValue(qreal curMin, qreal curMax)
 {
 
 }
 
-qreal ChartPanel::getRealValue(qreal val)
+qreal ChartPanel1::getRealValue(qreal val)
 {
     qreal center = (m_axisY->max() - m_axisY->min()) / 2;
     return (val - center) * 2 + m_axisY->min();
 }
 
-qreal ChartPanel::getMappedValue(qreal min, qreal max, qreal val)
+qreal ChartPanel1::getMappedValue(qreal min, qreal max, qreal val)
 {
     qreal center = (max - min) / 2;
     return center + (val - min) / 2;

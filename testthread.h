@@ -4,14 +4,15 @@
 #include <QString>
 #include <QObject>
 
-#include "chartpanel.h"
+class ChartPlot;
 
 class Test : public QObject
 {
     Q_OBJECT
 public:
-    Test(ChartPanel *panel);
-
+    Test();
+    Test(ChartPlot *panel);
+    virtual ~Test();
 
 public slots:
     void process();
@@ -20,7 +21,7 @@ signals:
     void error(QString err);
 
 private:
-    ChartPanel *panel;
+    ChartPlot *plot;
 
 };
 

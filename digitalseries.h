@@ -8,7 +8,6 @@ class DigitalSeries : public QLineSeries
 public:
     DigitalSeries();
 
-    int count() const;
 };
 
 #endif // DIGITALSERIES_H

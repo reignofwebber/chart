@@ -5,12 +5,12 @@
 #include <QtWidgets>
 
 
-class ChartPanel : public QWidget
+class ChartPanel1 : public QWidget
 {
     Q_OBJECT
 
 public:
-    ChartPanel(QWidget *parent = 0);
+    ChartPanel1(QWidget *parent = 0);
 
     void addPoint(qreal x, qreal y);
 

@@ -7,7 +7,7 @@ MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
 {
-    ChartPanel * panel = new ChartPanel;
+    ChartPanel1 * panel = new ChartPanel1;
 //    panel->show();
     setCentralWidget(panel);
 }

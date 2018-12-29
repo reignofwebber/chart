@@ -30,7 +30,7 @@ SOURCES += \
     testthread.cpp \
     analogseries.cpp \
     digitalseries.cpp \
-    form.cpp
+    chartplot.cpp
 
 HEADERS += \
         mainwindow.h \
@@ -38,8 +38,8 @@ HEADERS += \
     testthread.h \
     analogseries.h \
     digitalseries.h \
-    form.h
+    chartplot.h
 
 FORMS += \
         mainwindow.ui \
-    form.ui
+    chartpanel.ui
