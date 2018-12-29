@@ -16,6 +16,8 @@ ChartPlot::ChartPlot(QWidget *parent)
 {
     ui->setupUi(this);
 
+
+
     // analog
     m_analogChart = new QChart;
     ui->m_analogView->setChart(m_analogChart);
@@ -70,6 +72,22 @@ ChartPlot::ChartPlot(QWidget *parent)
     ui->m_digitalView->setRenderHint(QPainter::Antialiasing);
 
 
+    // init pool
+    for(int i = 0; i < 5; ++i)
+    {
+        QLineSeries *series = new QLineSeries;
+        m_analogSeriesPool.append(series);
+        m_analogChart->addSeries(series);
+        series->attachAxis(m_analogChart->axisX());
+        series->attachAxis(m_analogChart->axisY());
+
+        series = new QLineSeries;
+        m_digitalSeriesPool.append(series);
+        m_digitalChart->addSeries(series);
+        series->attachAxis(m_digitalChart->axisX());
+        series->attachAxis(m_digitalChart->axisY());
+
+    }
 
     //////////////////////////////////////////////////////////////////////////////
     QThread *thread = new QThread;
@@ -91,21 +109,28 @@ ChartPlot::~ChartPlot()
 
 void ChartPlot::addVariable(const VariateData &data)
 {
-    QLineSeries *series = new QLineSeries;
     // 区分数字量和模拟量
     if(data.length == 1)
     {
+        if(m_digitalSeriesPool.empty())
+        {
+            qDebug() << "m_digitalSeriesPool is empty";
+            return;
+        }
+        QLineSeries *series = m_digitalSeriesPool.back();
+        m_digitalSeriesPool.pop_back();
         m_digitalSeriesMap[data.id] = series;
-        m_digitalChart->addSeries(series);
-        series->attachAxis(m_digitalChart->axisX());
-        series->attachAxis(m_digitalChart->axisY());
     }
     else
     {
+        if(m_analogSeriesPool.empty())
+        {
+            qDebug() << "m_digitalSeriesPool is empty";
+            return;
+        }
+        QLineSeries *series = m_analogSeriesPool.back();
+        m_analogSeriesPool.pop_back();
         m_analogSeriesMap[data.id] = series;
-        m_analogChart->addSeries(series);
-        series->attachAxis(m_analogChart->axisX());
-        series->attachAxis(m_analogChart->axisY());
     }
 
 }

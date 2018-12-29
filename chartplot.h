@@ -56,6 +56,9 @@ private:
     QChart *m_analogChart;
     QChart *m_digitalChart;
 
+    QVector<QLineSeries *> m_analogSeriesPool;
+    QVector<QLineSeries *> m_digitalSeriesPool;
+
     QMap<QString, QLineSeries *> m_analogSeriesMap;
     QMap<QString, QLineSeries *> m_digitalSeriesMap;
 

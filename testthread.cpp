@@ -26,7 +26,7 @@ void Test::process()
 {
     qDebug() << "Test start";
     VariateData data;
-    data.id = "1";
+    data.id = "2";
     data.length = 1;
     plot->addVariable(data);
 
