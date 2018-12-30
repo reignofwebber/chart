@@ -6,6 +6,7 @@ ChartModel::ChartModel(QObject *parent)
     : QAbstractTableModel(parent)
 {
     m_showState.resize(5);
+    m_starState.resize(5);
 }
 
 int ChartModel::rowCount(const QModelIndex &parent) const
@@ -20,19 +21,17 @@ int ChartModel::columnCount(const QModelIndex &parent) const
 
 bool ChartModel::setData(const QModelIndex &index, const QVariant &value, int role)
 {
-//    if(role == Qt::CheckStateRole)
-//    {
-//        if(index.column() == COL_SHOW)
-//        {
-//            m_showState[index.row()] = static_cast<Qt::CheckState>(value.toInt());
-//            emit dataChanged(index, index);
-//        }
-//    }
+
     if(role == Qt::UserRole)
     {
         if(index.column() == COL_SHOW)
         {
             m_showState[index.row()] = value.toBool();
+            emit dataChanged(index, index);
+        }
+        else if(index.column() == COL_STAR)
+        {
+            m_starState[index.row()] = value.toBool();
             emit dataChanged(index, index);
         }
     }
@@ -41,18 +40,15 @@ bool ChartModel::setData(const QModelIndex &index, const QVariant &value, int ro
 
 QVariant ChartModel::data(const QModelIndex &index, int role) const
 {
-//    if(role == Qt::CheckStateRole)
-//    {
-//        if(index.column() == COL_SHOW)
-//        {
-//            return m_showState[index.row()];
-//        }
-//    }
     if(role == Qt::UserRole)
     {
         if(index.column() == COL_SHOW)
         {
             return m_showState[index.row()];
+        }
+        else if(index.column() == COL_STAR)
+        {
+            return m_starState[index.row()];
         }
     }
     return QVariant();
@@ -72,10 +68,8 @@ QVariant ChartModel::headerData(int section, Qt::Orientation orientation, int ro
 Qt::ItemFlags ChartModel::flags(const QModelIndex &index) const
 {
     Qt::ItemFlags flags = QAbstractTableModel::flags(index);
-    if(index.column() == COL_SHOW)
+    if(index.column() == COL_SHOW || index.column() == COL_STAR)
     {
-//        flags |= Qt::ItemIsUserCheckable;
-//        flags |= Qt::ItemIsEditable;
         flags ^= Qt::ItemIsSelectable;
     }else if(index.column() == COL_NAME)
     {

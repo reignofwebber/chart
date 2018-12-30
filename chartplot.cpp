@@ -82,7 +82,8 @@ ChartPlot::ChartPlot(QWidget *parent)
 //    ui->m_analogPanelView->setItemDelegateForColumn(0, new ChartCheckBoxDelegate);
     ui->m_analogPanelView->setModel(new ChartModel);
     ui->m_analogPanelView->initColsWidthRatio(QVector<int>() << 1 << 4 << 3 << 1 << 1);
-    ui->m_analogPanelView->setItemDelegateForColumn(0, new ChartCheckBoxDelegate);
+    ui->m_analogPanelView->setItemDelegateForColumn(COL_SHOW, new ChartCheckBoxDelegate);
+    ui->m_analogPanelView->setItemDelegateForColumn(COL_STAR, new ChartCheckBoxDelegate);
 
     //////////////////////////////////////////////////////////////////////////////
     QThread *thread = new QThread;

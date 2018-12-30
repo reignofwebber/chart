@@ -4,5 +4,7 @@
         <file>images/delete.png</file>
         <file>images/checked_checkbox.png</file>
         <file>images/unchecked_checkbox.png</file>
+        <file>images/star_star.png</file>
+        <file>images/star_unstar.png</file>
     </qresource>
 </RCC>

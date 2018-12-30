@@ -3,6 +3,15 @@
 
 #include <QAbstractTableModel>
 
+enum ChartTableCol
+{
+    COL_SHOW = 0,
+    COL_NAME,
+    COL_VALUE,
+    COL_COLOR,
+    COL_STAR
+};
+
 class ChartModel : public QAbstractTableModel
 {
     Q_OBJECT
@@ -18,15 +27,10 @@ public:
     Qt::ItemFlags flags(const QModelIndex &index) const;
 
 private:
-
-    const static int COL_SHOW = 0;
-    const static int COL_NAME = 1;
-    const static int COL_VALUE = 2;
-    const static int COL_COLOR = 3;
-    const static int COL_MARK = 4;
-
+\
 //    QVector<Qt::CheckState> m_showState{5, Qt::Unchecked};
     QVector<bool> m_showState;
+    QVector<bool> m_starState;
 };
 
 #endif // CHARTMODEL_H
