@@ -35,6 +35,9 @@ void Test::process()
     data.id = "3";
     data.length = 1;
     plot->addVariable(data);
+    data.id = "4";
+    data.length = 16;
+    plot->addVariable(data);
 
     while(true)
     {
@@ -42,6 +45,8 @@ void Test::process()
         plot->addPoint("1", QDateTime::currentDateTime().toMSecsSinceEpoch(), std::rand() % 100);
         plot->addPoint("2", QDateTime::currentDateTime().toMSecsSinceEpoch(), std::rand() % 2);
         plot->addPoint("3", QDateTime::currentDateTime().toMSecsSinceEpoch(), std::rand() % 2);
+        plot->addPoint("4", QDateTime::currentDateTime().toMSecsSinceEpoch(), std::rand() % 200);
+        plot->addPointComplete();
     }
     emit finished();
 }

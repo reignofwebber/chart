@@ -12,6 +12,7 @@ class ChartPanel;
 namespace QtCharts {
     class QLineSeries;
     class QChart;
+    class QValueAxis;
 }
 
 using namespace QtCharts;
@@ -47,14 +48,17 @@ public:
     void addVariable(const VariateData &data);
     // 为变量ID加点
     void addPoint(QString id, qreal time, qreal val);
+    // 所有变量加点完成
+    void addPointComplete();
     // 获取所有变量id
     QVector<QString> getAllVariableIds();
 
 private:
     Ui::ChartPanel *ui;
 
-    QChart *m_analogChart;
-    QChart *m_digitalChart;
+    QChart *m_chart;
+    QValueAxis *m_analogAxisY;
+    QValueAxis *m_digitalAxisY;
 
     QVector<QLineSeries *> m_analogSeriesPool;
     QVector<QLineSeries *> m_digitalSeriesPool;
@@ -64,12 +68,19 @@ private:
     QMap<QString, qreal> m_digitalOffsetMap;
 
     // analog
-    // y轴最小值
-    qreal m_minY;
-    // y轴最大值
-    qreal m_maxY;
+    // 模拟量y轴最小值
+    qreal m_analogMinY = -1;
+    // 模拟量y轴最大值
+    qreal m_analogMaxY = 1;
+    // 数字量y轴最小值
+    qreal m_digitalMinY = 0;
+    // 数字量y轴最大值
+    qreal m_digitalMaxY = 12;
+
     // 波形图总秒数
-    int m_totoalSeconds;
+    int m_totoalSeconds = 60;
+    // 数字量间距
+    qreal digitalOffset = 1.2;
 };
 
 #endif // CHARTPLOT_H

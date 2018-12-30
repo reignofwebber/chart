@@ -12,82 +12,64 @@
 ChartPlot::ChartPlot(QWidget *parent)
     :QWidget(parent)
     , ui(new Ui::ChartPanel)
-    , m_minY(0), m_maxY(1), m_totoalSeconds(60 * 5)
 {
     ui->setupUi(this);
 
-
-
     // analog
-    m_analogChart = new QChart;
-    ui->m_analogView->setChart(m_analogChart);
-    m_analogChart->legend()->hide();
+    m_chart = new QChart;
+    ui->m_view->setChart(m_chart);
+    m_chart->legend()->hide();
 
 
     QDateTimeAxis *axisX = new QDateTimeAxis;
     axisX->setFormat("yy-MM-dd h:mm:ss");
     auto now = QDateTime::currentDateTime();
     axisX->setMin(now);
-    axisX->setMax(now.addSecs(60));
+    axisX->setMax(now.addSecs(m_totoalSeconds));
     axisX->setTickCount(5);
-    axisX->hide();
-    m_analogChart->addAxis(axisX, Qt::AlignBottom);
+//    axisX->hide();
+    m_chart->addAxis(axisX, Qt::AlignBottom);
 
-    QValueAxis *axisY = new QValueAxis;
-    axisY->setMin(m_minY);
-    axisY->setMax(m_maxY);
-    axisY->setLabelsVisible(false);
-    axisY->setTickCount(2);
-    m_analogChart->addAxis(axisY, Qt::AlignLeft);
+    m_analogAxisY = new QValueAxis;
+    m_analogAxisY->setRange(m_analogMinY, m_analogMaxY);
+    m_analogAxisY->setLabelsVisible(false);
+    m_analogAxisY->setTickCount(3);
+    m_chart->addAxis(m_analogAxisY, Qt::AlignLeft);
+
+    m_digitalAxisY = new QValueAxis;
+    m_digitalAxisY->setRange(m_digitalMinY, m_digitalMaxY);
+    m_digitalAxisY->setTickCount(2);
+    m_digitalAxisY->hide();
+    m_chart->addAxis(m_digitalAxisY, Qt::AlignLeft);
 
 
-    m_analogChart->layout()->setContentsMargins(0, 0, 0, 0);
-    m_analogChart->setBackgroundRoundness(0);
-    m_analogChart->setMargins(QMargins(0, 0, 0, -1));
-    ui->m_analogView->setRenderHint(QPainter::Antialiasing);
-
-    // digital
-    m_digitalChart = new QChart;
-    ui->m_digitalView->setChart(m_digitalChart);
-    m_digitalChart->legend()->hide();
-
-    axisX = new QDateTimeAxis;
-    axisX->setFormat("yy-MM-dd h:mm:ss");
-    axisX->setMin(now);
-    axisX->setMax(now.addSecs(60));
-    axisX->setTickCount(5);
-    axisX->hide();
-    m_digitalChart->addAxis(axisX, Qt::AlignBottom);
-
-    axisY = new QValueAxis;
-    axisY->setMin(0);
-    axisY->setMax(6);
-    axisY->setLabelsVisible(false);
-    axisY->setTickCount(6);
-    m_digitalChart->addAxis(axisY, Qt::AlignLeft);
-
-    m_digitalChart->layout()->setContentsMargins(0, 0, 0, 0);
-    m_digitalChart->setBackgroundRoundness(0);
-    m_digitalChart->setMargins(QMargins(0, -1, 0, 0));
-    ui->m_digitalView->setRenderHint(QPainter::Antialiasing);
+    m_chart->layout()->setContentsMargins(0, 0, 0, 0);
+    m_chart->setBackgroundRoundness(0);
+    m_chart->setMargins(QMargins(0, 0, 0, -1));
+    ui->m_view->setRenderHint(QPainter::Antialiasing);
 
 
     // init pool
     for(int i = 0; i < 5; ++i)
     {
+        // analog series
         QLineSeries *series = new QLineSeries;
-        m_analogSeriesPool.append(series);
-        m_analogChart->addSeries(series);
-        series->attachAxis(m_analogChart->axisX());
-        series->attachAxis(m_analogChart->axisY());
+        m_chart->addSeries(series);
 
+        m_analogSeriesPool.append(series);
+        series->attachAxis(axisX);
+        series->attachAxis(m_analogAxisY);
+
+        // digital series
         series = new QLineSeries;
+        m_chart->addSeries(series);
+
         m_digitalSeriesPool.append(series);
-        m_digitalChart->addSeries(series);
-        series->attachAxis(m_digitalChart->axisX());
-        series->attachAxis(m_digitalChart->axisY());
+        series->attachAxis(axisX);
+        series->attachAxis(m_digitalAxisY);
 
     }
+
 
     //////////////////////////////////////////////////////////////////////////////
     QThread *thread = new QThread;
@@ -99,7 +81,6 @@ ChartPlot::ChartPlot(QWidget *parent)
     connect(thread, SIGNAL(finished()), thread, SLOT(deleteLater()));
     thread->start();
     //////////////////////////////////////////////////////////////////////////////
-
 }
 
 ChartPlot::~ChartPlot()
@@ -120,8 +101,7 @@ void ChartPlot::addVariable(const VariateData &data)
         QLineSeries *series = m_digitalSeriesPool.back();
         m_digitalSeriesPool.pop_back();
         m_digitalSeriesMap[data.id] = series;
-        QValueAxis *axis = dynamic_cast<QValueAxis *>(m_digitalChart->axisY());
-        m_digitalOffsetMap[data.id] = (4 - m_digitalSeriesPool.size())*(axis->max() - axis->min()) / (axis->tickCount() - 1);
+        m_digitalOffsetMap[data.id] = (4 - m_digitalSeriesPool.size()) * digitalOffset;
     }
     else
     {
@@ -141,26 +121,14 @@ void ChartPlot::addPoint(QString id, qreal time, qreal val)
 {
     if(m_analogSeriesMap.contains(id))
     {
-        if(val < m_minY)
+        if(val < m_analogAxisY->min() || val > m_analogAxisY->max())
         {
-            m_minY = val;
-            m_analogChart->axisY()->setMin(m_minY);
-
-        }
-        else if(val > m_maxY)
-        {
-            m_maxY = val;
-            m_analogChart->axisY()->setMax(m_maxY + 10);
-        }
-
-        if(m_analogSeriesMap[id]->count() > m_totoalSeconds)
-        {
-            qreal pertick = m_analogChart->plotArea().width()/m_totoalSeconds;
-            m_analogChart->scroll(pertick, 0);
+            qreal positive = std::abs(val);
+            m_analogAxisY->setRange(-positive, positive);
         }
 
         m_analogSeriesMap[id]->append(time, val);
-        m_analogChart->update();
+
     }
     else if(m_digitalSeriesMap.contains(id))
     {
@@ -174,18 +142,15 @@ void ChartPlot::addPoint(QString id, qreal time, qreal val)
             m_digitalSeriesMap[id]->append(time, val + m_digitalOffsetMap[id]);
         }
 
-        if(m_digitalSeriesMap[id]->count() * 2 - 1 > m_totoalSeconds)
-        {
-            qreal pertick = m_digitalChart->plotArea().width()/m_totoalSeconds;
-            m_digitalChart->scroll(pertick, 0);
-        }
-
-        m_digitalChart->update();
     }
     else
     {
         qDebug() << "unregistered id " << id;
+        return;
     }
+
+    // 更新chart
+    m_chart->update();
 }
 
 QVector<QString> ChartPlot::getAllVariableIds()
@@ -200,4 +165,18 @@ QVector<QString> ChartPlot::getAllVariableIds()
         ids.append(itr.key());
     }
     return ids;
+}
+
+// 只要有一个超界， 就滚动chart
+void ChartPlot::addPointComplete()
+{
+    for(auto itr = m_analogSeriesMap.begin(); itr != m_analogSeriesMap.end(); ++itr)
+    {
+        if(itr.value()->count() > m_totoalSeconds)
+        {
+            qreal pertick = m_chart->plotArea().width()/m_totoalSeconds;
+            m_chart->scroll(pertick, 0);
+            break;
+        }
+    }
 }
