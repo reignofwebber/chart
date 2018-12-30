@@ -1,5 +1,6 @@
-#include "mainwindow.h"
+
 #include "chartplot.h"
+#include "testform.h"
 #include <QApplication>
 
 int main(int argc, char *argv[])
@@ -9,5 +10,7 @@ int main(int argc, char *argv[])
 //    w.show();
     ChartPlot form;
     form.show();
+//    TestForm form;
+//    form.show();
     return a.exec();
 }

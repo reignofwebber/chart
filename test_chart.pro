@@ -25,24 +25,19 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 SOURCES += \
         main.cpp \
-        mainwindow.cpp \
-    chartpanel.cpp \
     testthread.cpp \
-    analogseries.cpp \
-    digitalseries.cpp \
-    chartplot.cpp
+    chartplot.cpp \
+    testform.cpp
 
 HEADERS += \
-        mainwindow.h \
-    chartpanel.h \
     testthread.h \
-    analogseries.h \
-    digitalseries.h \
-    chartplot.h
+    chartplot.h \
+    testform.h
 
 FORMS += \
         mainwindow.ui \
-    chartpanel.ui
+    chartpanel.ui \
+    testform.ui
 
 RESOURCES += \
     res.qrc
