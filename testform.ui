@@ -23,16 +23,16 @@
     </rect>
    </property>
    <property name="styleSheet">
-    <string notr="true">::indicator{
+    <string notr="true">QCheckBox::indicator{
 	width:25px;
 	height:25px;
 }
 
-::indicator::unchecked{
+QCheckBox::indicator::unchecked{
 	image:url(:/images/unchecked_checkbox.png)
 }
 
-::indicator::checked{
+QCheckBox::indicator::checked{
 	image:url(:/images/checked_checkbox.png)
 }</string>
    </property>

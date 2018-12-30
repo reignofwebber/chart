@@ -119,10 +119,19 @@
          </layout>
         </item>
         <item>
-         <widget class="QTableView" name="tableView">
+         <widget class="ChartPanelView" name="m_analogPanelView">
           <property name="styleSheet">
            <string notr="true">border:none;</string>
           </property>
+          <attribute name="horizontalHeaderVisible">
+           <bool>true</bool>
+          </attribute>
+          <attribute name="horizontalHeaderStretchLastSection">
+           <bool>true</bool>
+          </attribute>
+          <attribute name="verticalHeaderVisible">
+           <bool>false</bool>
+          </attribute>
          </widget>
         </item>
        </layout>
@@ -276,6 +285,11 @@
    <class>QChartView</class>
    <extends>QGraphicsView</extends>
    <header location="global">QtCharts</header>
+  </customwidget>
+  <customwidget>
+   <class>ChartPanelView</class>
+   <extends>QTableView</extends>
+   <header>chartpanelview.h</header>
   </customwidget>
  </customwidgets>
  <resources/>

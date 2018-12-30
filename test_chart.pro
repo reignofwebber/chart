@@ -27,12 +27,18 @@ SOURCES += \
         main.cpp \
     testthread.cpp \
     chartplot.cpp \
-    testform.cpp
+    testform.cpp \
+    chartmodel.cpp \
+    chartpanelview.cpp \
+    chartdelegate.cpp
 
 HEADERS += \
     testthread.h \
     chartplot.h \
-    testform.h
+    testform.h \
+    chartmodel.h \
+    chartpanelview.h \
+    chartdelegate.h
 
 FORMS += \
         mainwindow.ui \

@@ -1,12 +1,12 @@
 #include "chartplot.h"
 #include "ui_chartpanel.h"
 #include "testthread.h"
-
-#include "analogseries.h"
-#include "digitalseries.h"
+#include "chartdelegate.h"
+#include "chartmodel.h"
 
 #include <QThread>
 #include <QtCharts>
+#include <QStandardItemModel>
 
 
 ChartPlot::ChartPlot(QWidget *parent)
@@ -15,6 +15,8 @@ ChartPlot::ChartPlot(QWidget *parent)
 {
     ui->setupUi(this);
 
+    //////////////////////////////////////////////////////////////////////////////
+    // chart part
     // analog
     m_chart = new QChart;
     ui->m_view->setChart(m_chart);
@@ -70,6 +72,17 @@ ChartPlot::ChartPlot(QWidget *parent)
 
     }
 
+    //////////////////////////////////////////////////////////////////////////////
+    // tableview part
+//    QStandardItemModel *model = new QStandardItemModel(5, 5);
+//    ui->m_analogPanelView->setModel(model);
+//    model->setHorizontalHeaderLabels(QStringList() << "" << "名称" << "值" << "颜色"  << "");
+//    ui->m_analogPanelView->initColsWidthRatio(QVector<int>() << 1 << 4 << 3 << 1 << 1);
+//    // delegates
+//    ui->m_analogPanelView->setItemDelegateForColumn(0, new ChartCheckBoxDelegate);
+    ui->m_analogPanelView->setModel(new ChartModel);
+    ui->m_analogPanelView->initColsWidthRatio(QVector<int>() << 1 << 4 << 3 << 1 << 1);
+    ui->m_analogPanelView->setItemDelegateForColumn(0, new ChartCheckBoxDelegate);
 
     //////////////////////////////////////////////////////////////////////////////
     QThread *thread = new QThread;
