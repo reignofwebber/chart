@@ -13,28 +13,21 @@
   <property name="windowTitle">
    <string>Form</string>
   </property>
-  <widget class="QCheckBox" name="checkBox">
+  <property name="styleSheet">
+   <string notr="true"/>
+  </property>
+  <widget class="QPushButton" name="pushButton">
    <property name="geometry">
     <rect>
-     <x>220</x>
-     <y>150</y>
-     <width>101</width>
-     <height>31</height>
+     <x>170</x>
+     <y>90</y>
+     <width>41</width>
+     <height>28</height>
     </rect>
    </property>
    <property name="styleSheet">
-    <string notr="true">QCheckBox::indicator{
-	width:25px;
-	height:25px;
-}
-
-QCheckBox::indicator::unchecked{
-	image:url(:/images/unchecked_checkbox.png)
-}
-
-QCheckBox::indicator::checked{
-	image:url(:/images/checked_checkbox.png)
-}</string>
+    <string notr="true">background:rgb(85, 255, 0);
+border:none;</string>
    </property>
    <property name="text">
     <string/>

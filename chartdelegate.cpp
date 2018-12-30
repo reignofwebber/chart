@@ -17,11 +17,11 @@ ChartCheckBoxDelegate::ChartCheckBoxDelegate(QObject *parent)
 
 void ChartCheckBoxDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
 {
-    QStyleOptionViewItem viewOption(option);
-    initStyleOption(&viewOption, index);
-    if(option.state.testFlag(QStyle::State_HasFocus))
-        viewOption.state = viewOption.state ^ QStyle::State_HasFocus;
-    QStyledItemDelegate::paint(painter, viewOption, index);
+//    QStyleOptionViewItem viewOption(option);
+//    initStyleOption(&viewOption, index);
+//    if(option.state.testFlag(QStyle::State_HasFocus))
+//        viewOption.state = viewOption.state ^ QStyle::State_HasFocus;
+//    QStyledItemDelegate::paint(painter, viewOption, index);
 
 
     bool data = index.model()->data(index, Qt::UserRole).toBool();
@@ -50,6 +50,48 @@ bool ChartCheckBoxDelegate::editorEvent(QEvent *event, QAbstractItemModel *model
     {
         bool data = model->data(index, Qt::UserRole).toBool();
         model->setData(index, !data, Qt::UserRole);
+    }
+    return QStyledItemDelegate::editorEvent(event, model, option, index);
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+#include <QPushButton>
+
+
+ChartButtonDelegate::ChartButtonDelegate(QObject *parent)
+    : QStyledItemDelegate(parent)
+{
+
+}
+
+void ChartButtonDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
+{
+    unsigned data = index.model()->data(index, Qt::UserRole).toUInt();
+    QColor color(data);
+
+    QPushButton btn;
+    btn.setStyleSheet(QString("background:rgb(%1, %2, %3);\nborder:none;").arg(color.red()).arg(color.green()).arg(color.blue()));
+    btn.resize(option.rect.size() * 3 / 4);
+    painter->save();
+    painter->translate(option.rect.x() + option.rect.width() / 8, option.rect.y() + option.rect.height() / 8);
+    btn.render(painter);
+    painter->restore();
+
+
+}
+
+bool ChartButtonDelegate::editorEvent(QEvent *event, QAbstractItemModel *model, const QStyleOptionViewItem &option, const QModelIndex &index)
+{
+    QRect decorationRect(option.rect.x() + option.rect.width()/8, option.rect.y() + option.rect.height()/8, option.rect.width()*3/4, option.rect.height()*3/4);
+
+    QMouseEvent *mouseEvent = static_cast<QMouseEvent *>(event);
+    if(event->type() == QEvent::MouseButtonPress && decorationRect.contains(mouseEvent->pos()))
+    {
+        unsigned data;
+        data += (std::rand() % 256) << 16;
+        data += (std::rand() % 256) << 8;
+        data += (std::rand() % 256);
+        model->setData(index, data, Qt::UserRole);
     }
     return QStyledItemDelegate::editorEvent(event, model, option, index);
 }

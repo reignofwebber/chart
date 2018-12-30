@@ -27,9 +27,11 @@ public:
     Qt::ItemFlags flags(const QModelIndex &index) const;
 
 private:
-\
-//    QVector<Qt::CheckState> m_showState{5, Qt::Unchecked};
+    // show
     QVector<bool> m_showState;
+    // color
+    QVector<unsigned> m_colors;
+    // star
     QVector<bool> m_starState;
 };
 
