@@ -35,7 +35,7 @@ ChartPlot::ChartPlot(QWidget *parent)
     m_analogAxisY = new QValueAxis;
     m_analogAxisY->setRange(m_analogMinY, m_analogMaxY);
     m_analogAxisY->setLabelsVisible(false);
-    m_analogAxisY->setTickCount(3);
+    m_analogAxisY->setTickCount(2);
     m_chart->addAxis(m_analogAxisY, Qt::AlignLeft);
 
     m_digitalAxisY = new QValueAxis;
@@ -49,6 +49,7 @@ ChartPlot::ChartPlot(QWidget *parent)
     m_chart->setBackgroundRoundness(0);
     m_chart->setMargins(QMargins(0, 0, 0, -1));
     ui->m_view->setRenderHint(QPainter::Antialiasing);
+    ui->m_view->setRubberBand(QChartView::HorizontalRubberBand);
 
 
     // init pool
@@ -73,18 +74,39 @@ ChartPlot::ChartPlot(QWidget *parent)
     }
 
     //////////////////////////////////////////////////////////////////////////////
+    // panel part
+    ui->m_dataTypeCombo->setItemDelegate(new QStyledItemDelegate);
+    ui->m_dataFileCombo->setItemDelegate(new QStyledItemDelegate);
+
+
+
+    //////////////////////////////////////////////////////////////////////////////
     // tableview part
-//    QStandardItemModel *model = new QStandardItemModel(5, 5);
-//    ui->m_analogPanelView->setModel(model);
-//    model->setHorizontalHeaderLabels(QStringList() << "" << "名称" << "值" << "颜色"  << "");
-//    ui->m_analogPanelView->initColsWidthRatio(QVector<int>() << 1 << 4 << 3 << 1 << 1);
-//    // delegates
-//    ui->m_analogPanelView->setItemDelegateForColumn(0, new ChartCheckBoxDelegate);
-    ui->m_analogPanelView->setModel(new ChartModel);
-    ui->m_analogPanelView->initColsWidthRatio(QVector<int>() << 1 << 4 << 3 << 1 << 1);
+    ChartModel *model = new ChartModel;
+    ui->m_analogPanelView->setModel(model);
+    toggleColumnHide(false);
     ui->m_analogPanelView->setItemDelegateForColumn(COL_SHOW, new ChartCheckBoxDelegate);
     ui->m_analogPanelView->setItemDelegateForColumn(COL_STAR, new ChartCheckBoxDelegate);
     ui->m_analogPanelView->setItemDelegateForColumn(COL_COLOR, new ChartButtonDelegate);
+
+    //////////////////////////////////////////////////////////////////////////////
+    // connections
+    connect(ui->m_editBtn, SIGNAL(clicked(bool)), this, SLOT(toggleColumnHide(bool)));
+    connect(ui->m_addBtn, SIGNAL(clicked()), model, SLOT(addVariate()));
+    connect(ui->m_removeBtn, &QPushButton::clicked, [=](){
+        QItemSelectionModel *selModel = ui->m_analogPanelView->selectionModel();
+
+        QModelIndexList list = selModel->selectedIndexes();
+        std::sort(list.begin(), list.end(), [](const QModelIndex &l, const QModelIndex &r)
+        {
+            return l.row() < r.row();
+        });
+
+        for(int i = list.size() - 1; i >=0; --i)
+        {
+            model->removeRow(list.at(i).row(), QModelIndex());
+        }
+    });
 
     //////////////////////////////////////////////////////////////////////////////
     QThread *thread = new QThread;
@@ -187,11 +209,30 @@ void ChartPlot::addPointComplete()
 {
     for(auto itr = m_analogSeriesMap.begin(); itr != m_analogSeriesMap.end(); ++itr)
     {
-        if(itr.value()->count() > m_totoalSeconds)
+        QLineSeries *series = itr.value();
+        if(series->count() == 0) break;
+        QDateTimeAxis *axisX = dynamic_cast<QDateTimeAxis *>(m_chart->axisX());
+
+        if(series->at(series->count() - 1).x() > axisX->max().toMSecsSinceEpoch())
         {
-            qreal pertick = m_chart->plotArea().width()/m_totoalSeconds;
+            quint64 totalSeconds = axisX->max().toSecsSinceEpoch() - axisX->min().toSecsSinceEpoch();
+            if(totalSeconds < 1) totalSeconds = 1;
+            qreal pertick = m_chart->plotArea().width()/totalSeconds;
             m_chart->scroll(pertick, 0);
             break;
         }
     }
 }
+
+void ChartPlot::toggleColumnHide(bool checked)
+{
+    if(checked)
+    {
+       ui->m_analogPanelView->setColsWidthRatio(QVector<int>() << 1 << 4 << 3 << 1 << 1);
+    }
+    else
+    {
+       ui->m_analogPanelView->setColsWidthRatio(QVector<int>() << 0 << 5 << 3 << 1 << 0);
+    }
+}
+

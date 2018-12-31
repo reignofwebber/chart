@@ -6,5 +6,11 @@
         <file>images/unchecked_checkbox.png</file>
         <file>images/star_star.png</file>
         <file>images/star_unstar.png</file>
+        <file>images/star_hover.png</file>
+        <file>images/edit.png</file>
+        <file>images/radio_checked.png</file>
+        <file>images/radio_unchecked.png</file>
+        <file>images/edit_checked.png</file>
+        <file>images/drop_down.png</file>
     </qresource>
 </RCC>

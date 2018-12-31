@@ -53,6 +53,9 @@ public:
     // 获取所有变量id
     QVector<QString> getAllVariableIds();
 
+public slots:
+    void toggleColumnHide(bool checked);
+
 private:
     Ui::ChartPanel *ui;
 

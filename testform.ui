@@ -16,23 +16,38 @@
   <property name="styleSheet">
    <string notr="true"/>
   </property>
-  <widget class="QPushButton" name="pushButton">
-   <property name="geometry">
-    <rect>
-     <x>170</x>
-     <y>90</y>
-     <width>41</width>
-     <height>28</height>
-    </rect>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">background:rgb(85, 255, 0);
-border:none;</string>
-   </property>
-   <property name="text">
-    <string/>
-   </property>
-  </widget>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout">
+     <item>
+      <widget class="QTableView" name="tableView">
+       <property name="styleSheet">
+        <string notr="true">QTableView{
+	color: red;
+	background-color:rgb(108,108,108);
+	alternate-background-color:rgb(64,64,64);
+	selection-color:white;
+	selection-background-color:rgb(77,77,77);
+	padding:2px 4px;
+}
+
+QTableView::item{
+    border-top : 1px solid black
+    border-bottom : 1px solid black
+}</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="pushButton">
+       <property name="text">
+        <string>PushButton</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+  </layout>
  </widget>
  <resources/>
  <connections/>

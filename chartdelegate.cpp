@@ -17,24 +17,17 @@ ChartCheckBoxDelegate::ChartCheckBoxDelegate(QObject *parent)
 
 void ChartCheckBoxDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
 {
-//    QStyleOptionViewItem viewOption(option);
-//    initStyleOption(&viewOption, index);
-//    if(option.state.testFlag(QStyle::State_HasFocus))
-//        viewOption.state = viewOption.state ^ QStyle::State_HasFocus;
-//    QStyledItemDelegate::paint(painter, viewOption, index);
-
-
     bool data = index.model()->data(index, Qt::UserRole).toBool();
 
     QCheckBox checkBox;
     if(index.column() == COL_SHOW)
         checkBox.setStyleSheet("QCheckBox::indicator{\n	width:20px;\n	height:20px;\n}\n\nQCheckBox::indicator::unchecked{\n	image:url(:/images/unchecked_checkbox.png)\n}\n\nQCheckBox::indicator::checked{\n	image:url(:/images/checked_checkbox.png)\n}");
     else if(index.column() == COL_STAR)
-        checkBox.setStyleSheet("QCheckBox::indicator{\n	width:20px;\n	height:20px;\n}\n\nQCheckBox::indicator::unchecked{\n	image:url(:/images/star_unstar.png)\n}\n\nQCheckBox::indicator::checked{\n	image:url(:/images/star_star.png)\n}");
+        checkBox.setStyleSheet("QCheckBox::indicator{\n	width:20px;\n	height:20px;\n}\n\nQCheckBox::indicator::unchecked{\n	image:url(:/images/star_unstar.png)\n}\n\nQCheckBox::indicator::unchecked::hover{\n	image:url(:/images/star_hover.png)\n}\n\nQCheckBox::indicator::checked{\n	image:url(:/images/star_star.png)\n}");
     checkBox.setChecked(data);
-    checkBox.resize(option.rect.size());
+    checkBox.resize(option.rect.size()/2);
     painter->save();
-    painter->translate(option.rect.x() + (option.rect.width()-20)/2, option.rect.y());
+    painter->translate(option.rect.x() + (option.rect.width() - 20)/2, option.rect.y() + (option.rect.height() - 20)/2);
     checkBox.render(painter);
     painter->restore();
 
@@ -70,13 +63,12 @@ void ChartButtonDelegate::paint(QPainter *painter, const QStyleOptionViewItem &o
     QColor color(data);
 
     QPushButton btn;
-    btn.setStyleSheet(QString("background:rgb(%1, %2, %3);\nborder:none;").arg(color.red()).arg(color.green()).arg(color.blue()));
+    btn.setStyleSheet(QString("background:rgb(%1, %2, %3);\nborder-radius:10px;").arg(color.red()).arg(color.green()).arg(color.blue()));
     btn.resize(option.rect.size() * 3 / 4);
     painter->save();
     painter->translate(option.rect.x() + option.rect.width() / 8, option.rect.y() + option.rect.height() / 8);
     btn.render(painter);
     painter->restore();
-
 
 }
 
@@ -87,7 +79,7 @@ bool ChartButtonDelegate::editorEvent(QEvent *event, QAbstractItemModel *model, 
     QMouseEvent *mouseEvent = static_cast<QMouseEvent *>(event);
     if(event->type() == QEvent::MouseButtonPress && decorationRect.contains(mouseEvent->pos()))
     {
-        unsigned data;
+        unsigned data = 0;
         data += (std::rand() % 256) << 16;
         data += (std::rand() % 256) << 8;
         data += (std::rand() % 256);

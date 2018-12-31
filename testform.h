@@ -15,6 +15,9 @@ public:
     explicit TestForm(QWidget *parent = 0);
     ~TestForm();
 
+public slots:
+    void Del();
+
 private:
     Ui::TestForm *ui;
 };

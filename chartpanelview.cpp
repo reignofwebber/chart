@@ -2,8 +2,10 @@
 
 #include <QStandardItemModel>
 #include <QHeaderView>
-
+#include <QScrollBar>
+#include <QPainter>
 #include <QDebug>
+#include <QLayout>
 
 ChartPanelView::ChartPanelView(QWidget *parent)
     : QTableView(parent)
@@ -11,23 +13,32 @@ ChartPanelView::ChartPanelView(QWidget *parent)
     verticalHeader()->setVisible(false);
     horizontalHeader()->setStretchLastSection(true);
 
+    setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+
+    setAlternatingRowColors(true);
+
 }
 
-void ChartPanelView::initColsWidthRatio(const QVector<int> &radios)
+void ChartPanelView::setColsWidthRatio(const QVector<int> &radios)
 {
-    if(std::find(radios.begin(), radios.end(), 0) != radios.end())
-    {
-        qDebug() << "radio can not be 0";
-        return;
-    }
-
     m_radios.clear();
     total = 0;
-    std::for_each(radios.begin(), radios.end(), [this](const int &radio)
+
+    for(int i = 0; i < horizontalHeader()->count(); ++i)
     {
-        m_radios.append(radio);
-        total += radio;
-    });
+        if(radios.at(i) == 0)
+        {
+            setColumnHidden(i, true);
+        }
+        else
+        {
+            setColumnHidden(i, false);
+        }
+
+        m_radios.append(radios.at(i));
+        total += radios.at(i);
+    }
 
 }
 

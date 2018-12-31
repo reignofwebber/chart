@@ -9,7 +9,7 @@ class ChartPanelView : public QTableView
 {
 public:
     ChartPanelView(QWidget *parent = 0);
-    void initColsWidthRatio(const QVector<int> &radios);
+    void setColsWidthRatio(const QVector<int> &radios);
 
     void paintEvent(QPaintEvent *event);
 
