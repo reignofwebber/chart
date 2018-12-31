@@ -49,7 +49,6 @@ ChartPlot::ChartPlot(QWidget *parent)
     m_chart->setBackgroundRoundness(0);
     m_chart->setMargins(QMargins(0, 0, 0, -1));
     ui->m_view->setRenderHint(QPainter::Antialiasing);
-    ui->m_view->setRubberBand(QChartView::HorizontalRubberBand);
 
 
     // init pool
@@ -105,6 +104,34 @@ ChartPlot::ChartPlot(QWidget *parent)
         for(int i = list.size() - 1; i >=0; --i)
         {
             model->removeRow(list.at(i).row(), QModelIndex());
+        }
+    });
+
+    // cursor type
+    connect(ui->m_cursorNormalBtn, &QPushButton::clicked, [=](bool checked)
+    {
+        ui->m_cursorNormalBtn->setChecked(checked);
+        if(checked)
+        {
+            emit ui->m_cursorHandBtn->clicked(false);
+            ui->m_view->setRubberBand(QChartView::HorizontalRubberBand);
+        }
+        else
+        {
+            ui->m_view->setRubberBand(QChartView::NoRubberBand);
+        }
+    });
+    connect(ui->m_cursorHandBtn, &QPushButton::clicked, [=](bool checked)
+    {
+        ui->m_cursorHandBtn->setChecked(checked);
+        if(checked)
+        {
+            emit ui->m_cursorNormalBtn->clicked(false);
+            ui->m_view->setCursor(Qt::OpenHandCursor);
+        }
+        else
+        {
+            ui->m_view->setCursor(Qt::ArrowCursor);
         }
     });
 

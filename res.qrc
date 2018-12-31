@@ -12,5 +12,10 @@
         <file>images/radio_unchecked.png</file>
         <file>images/edit_checked.png</file>
         <file>images/drop_down.png</file>
+        <file>images/reset.png</file>
+        <file>images/cursor.png</file>
+        <file>images/cursor_enable.png</file>
+        <file>images/hand.png</file>
+        <file>images/hand-rock.png</file>
     </qresource>
 </RCC>
