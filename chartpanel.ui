@@ -613,19 +613,6 @@ QPushButton:checked{
             </property>
            </widget>
           </item>
-          <item row="0" column="2">
-           <spacer name="horizontalSpacer_4">
-            <property name="orientation">
-             <enum>Qt::Horizontal</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>28</width>
-              <height>20</height>
-             </size>
-            </property>
-           </spacer>
-          </item>
           <item row="1" column="0">
            <widget class="QPushButton" name="m_resetBtn">
             <property name="sizePolicy">
@@ -693,6 +680,61 @@ QPushButton:pressed{
              </size>
             </property>
            </spacer>
+          </item>
+          <item row="1" column="2">
+           <widget class="QPushButton" name="m_settingsBtn">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>32</width>
+              <height>32</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>32</width>
+              <height>32</height>
+             </size>
+            </property>
+            <property name="toolTip">
+             <string>重置</string>
+            </property>
+            <property name="autoFillBackground">
+             <bool>false</bool>
+            </property>
+            <property name="styleSheet">
+             <string notr="true">QPushButton{
+	border: 2px solid rgb(109, 122, 224);
+	border-style: outset;
+	border-radius:5px;
+}
+
+QPushButton:pressed{
+	border: 1px groove gray;
+	border-style: inset;
+	margin-top: 1px;
+	margin-left: 1px;
+}</string>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+            <property name="icon">
+             <iconset resource="res.qrc">
+              <normaloff>:/images/settings.png</normaloff>:/images/settings.png</iconset>
+            </property>
+            <property name="checkable">
+             <bool>false</bool>
+            </property>
+            <property name="checked">
+             <bool>false</bool>
+            </property>
+           </widget>
           </item>
          </layout>
         </item>

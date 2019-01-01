@@ -30,7 +30,8 @@ SOURCES += \
     testform.cpp \
     chartmodel.cpp \
     chartpanelview.cpp \
-    chartdelegate.cpp
+    chartdelegate.cpp \
+    chartsettingsdls.cpp
 
 HEADERS += \
     testthread.h \
@@ -39,12 +40,14 @@ HEADERS += \
     chartmodel.h \
     chartpanelview.h \
     chartdelegate.h \
-    chartview.h
+    chartview.h \
+    chartsettingsdls.h
 
 FORMS += \
         mainwindow.ui \
     chartpanel.ui \
-    testform.ui
+    testform.ui \
+    chartsettingsdlg.ui
 
 RESOURCES += \
     res.qrc
