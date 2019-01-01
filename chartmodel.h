@@ -2,6 +2,7 @@
 #define CHARTMODEL_H
 
 #include <QAbstractTableModel>
+#include "chartplot.h"
 
 enum ChartTableCol
 {
@@ -12,18 +13,6 @@ enum ChartTableCol
     COL_STAR
 };
 
-struct ChartData
-{
-    QString id;         // from VariateData
-    QString name;       // from VariateData'
-    int length;         // from VariateData
-    float value = 0;    // value
-    unsigned color;     // color
-    bool show;          // if show in chart
-    bool star;          // if save for next open
-};
-
-class VariateData;
 
 class ChartModel : public QAbstractTableModel
 {
@@ -42,11 +31,12 @@ public:
     Qt::ItemFlags flags(const QModelIndex &index) const;
     bool removeRow(int row, const QModelIndex &parent);
 
-public slots:
-    void addVariate();
+signals:
+    void showChanged(QString id, bool show);
+    void colorChanged(QString id, unsigned color);
 
 public:
-    void addVariate(const VariateData &data);
+    void addVariate(const ChartData &data);
 
 private:
     unsigned getRandomColor() const;

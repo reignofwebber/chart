@@ -31,7 +31,6 @@ protected:
         if(rubberBand() == QChartView::NoRubberBand && cursor() == Qt::ClosedHandCursor)
         {
             qreal distance = press_x - mapToScene(event->pos()).x();
-            qDebug() << "release," << distance;
             this->chart()->scroll(distance, 0);
             setCursor(Qt::OpenHandCursor);
         }

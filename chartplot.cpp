@@ -80,17 +80,21 @@ ChartPlot::ChartPlot(QWidget *parent)
 
     //////////////////////////////////////////////////////////////////////////////
     // tableview part
-    ChartModel *model = new ChartModel;
-    ui->m_analogPanelView->setModel(model);
+    m_model = new ChartModel;
+    ui->m_analogPanelView->setModel(m_model);
     toggleColumnHide(false);
     ui->m_analogPanelView->setItemDelegateForColumn(COL_SHOW, new ChartCheckBoxDelegate);
     ui->m_analogPanelView->setItemDelegateForColumn(COL_STAR, new ChartCheckBoxDelegate);
     ui->m_analogPanelView->setItemDelegateForColumn(COL_COLOR, new ChartButtonDelegate);
 
+    connect(m_model, SIGNAL(showChanged(QString,bool)), this, SLOT(onShowChanged(QString,bool)));
+    connect(m_model, SIGNAL(colorChanged(QString,uint)), this, SLOT(onColorChanged(QString,uint)));
+
     //////////////////////////////////////////////////////////////////////////////
     // connections
     connect(ui->m_editBtn, SIGNAL(clicked(bool)), this, SLOT(toggleColumnHide(bool)));
-    connect(ui->m_addBtn, SIGNAL(clicked()), model, SLOT(addVariate()));
+//    connect(ui->m_addBtn, SIGNAL(clicked()), model, SLOT(addVariate()));
+    connect(ui->m_addBtn, SIGNAL(clicked()), this, SLOT(addVariate()));
     connect(ui->m_removeBtn, &QPushButton::clicked, [=](){
         QItemSelectionModel *selModel = ui->m_analogPanelView->selectionModel();
 
@@ -102,7 +106,9 @@ ChartPlot::ChartPlot(QWidget *parent)
 
         for(int i = list.size() - 1; i >=0; --i)
         {
-            model->removeRow(list.at(i).row(), QModelIndex());
+            QString id = m_model->data(list.at(i), Qt::UserRole).toString();
+            removeVariable(id);
+            m_model->removeRow(list.at(i).row(), QModelIndex());
         }
     });
 
@@ -159,8 +165,9 @@ ChartPlot::~ChartPlot()
     delete ui;
 }
 
-void ChartPlot::addVariable(const VariateData &data)
+void ChartPlot::addVariable(const ChartData &data)
 {
+    QLineSeries *series;
     // 区分数字量和模拟量
     if(data.length == 1)
     {
@@ -169,7 +176,7 @@ void ChartPlot::addVariable(const VariateData &data)
             qDebug() << "m_digitalSeriesPool is empty";
             return;
         }
-        QLineSeries *series = m_digitalSeriesPool.back();
+        series = m_digitalSeriesPool.back();
         m_digitalSeriesPool.pop_back();
         m_digitalSeriesMap[data.id] = series;
         m_digitalOffsetMap[data.id] = (4 - m_digitalSeriesPool.size()) * digitalOffset;
@@ -181,11 +188,16 @@ void ChartPlot::addVariable(const VariateData &data)
             qDebug() << "m_digitalSeriesPool is empty";
             return;
         }
-        QLineSeries *series = m_analogSeriesPool.back();
+        series = m_analogSeriesPool.back();
         m_analogSeriesPool.pop_back();
         m_analogSeriesMap[data.id] = series;
     }
 
+    series->setColor(QColor(data.color));
+    if(!data.show) series->hide();
+
+    // add to panel
+    m_model->addVariate(data);
 }
 
 void ChartPlot::addPoint(QString id, qreal time, qreal val)
@@ -194,7 +206,7 @@ void ChartPlot::addPoint(QString id, qreal time, qreal val)
     {
         if(val < m_analogAxisY->min() || val > m_analogAxisY->max())
         {
-            qreal positive = std::abs(val);
+            qreal positive = std::abs(val) + 10;
             m_analogAxisY->setRange(-positive, positive);
         }
 
@@ -269,4 +281,91 @@ void ChartPlot::toggleColumnHide(bool checked)
        ui->m_analogPanelView->setColsWidthRatio(QVector<int>() << 0 << 5 << 3 << 1 << 0);
     }
 }
+
+void ChartPlot::addVariate()
+{
+    static int id = 0;
+    VariateData data;
+    data.id = QString::number(id);
+    data.variateName = QString("列车速度%1").arg(id);
+    data.length = 8;
+
+    ChartData cdata;
+    cdata.id = data.id;
+    cdata.name = data.variateName;
+    cdata.length = data.length;
+    cdata.show = true;
+    cdata.star = false;
+    cdata.color = getRandomColor();
+    addVariable(cdata);
+    ++id;
+}
+
+void ChartPlot::onShowChanged(QString id, bool show)
+{
+    if(m_analogSeriesMap.contains(id))
+    {
+        if(show) m_analogSeriesMap[id]->show();
+        else m_analogSeriesMap[id]->hide();
+    }
+    else if(m_digitalSeriesMap.contains(id))
+    {
+        if(show) m_digitalSeriesMap[id]->show();
+        else m_digitalSeriesMap[id]->hide();
+    }
+    else
+    {
+        qDebug() << "showChanged: no registered id" << id;
+    }
+}
+
+void ChartPlot::onColorChanged(QString id, unsigned color)
+{
+    if(m_analogSeriesMap.contains(id))
+    {
+        m_analogSeriesMap[id]->setColor(QColor(color));
+    }
+    else if(m_digitalSeriesMap.contains(id))
+    {
+        m_analogSeriesMap[id]->setColor(QColor(color));
+    }
+    else
+    {
+        qDebug() << "colorChanged: no registered id" << id;
+    }
+}
+
+
+unsigned ChartPlot::getRandomColor() const
+{
+    unsigned data = 0;
+    data += (std::rand() % 256) << 16;
+    data += (std::rand() % 256) << 8;
+    data += (std::rand() % 256);
+    return data;
+}
+
+void ChartPlot::removeVariable(QString id)
+{
+    QLineSeries *series;
+    if(m_analogSeriesMap.contains(id))
+    {
+        series = m_analogSeriesMap[id];
+        m_analogSeriesMap.remove(id);
+        series->clear();
+        m_analogSeriesPool.append(series);
+    }
+    else if(m_digitalSeriesMap.contains(id))
+    {
+        series = m_digitalSeriesMap[id];
+        m_digitalSeriesMap.remove(id);
+        series->clear();
+        m_digitalSeriesPool.append(series);
+    }
+    else
+    {
+        qDebug() << "removeVariable: no registered id " << id;
+    }
+}
+
 

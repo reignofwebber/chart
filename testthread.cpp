@@ -25,23 +25,11 @@ Test::~Test()
 void Test::process()
 {
     qDebug() << "Test start";
-    VariateData data;
-    data.id = "1";
-    data.length = 8;
-    plot->addVariable(data);
-    data.id = "2";
-    data.length = 1;
-    plot->addVariable(data);
-    data.id = "3";
-    data.length = 1;
-    plot->addVariable(data);
-    data.id = "4";
-    data.length = 16;
-    plot->addVariable(data);
 
     while(true)
     {
         std::this_thread::sleep_for(std::chrono::seconds(1));
+        plot->addPoint("0", QDateTime::currentDateTime().toMSecsSinceEpoch(), std::rand() % 100);
         plot->addPoint("1", QDateTime::currentDateTime().toMSecsSinceEpoch(), std::rand() % 100);
         plot->addPoint("2", QDateTime::currentDateTime().toMSecsSinceEpoch(), std::rand() % 2);
         plot->addPoint("3", QDateTime::currentDateTime().toMSecsSinceEpoch(), std::rand() % 2);

@@ -111,7 +111,7 @@
              </size>
             </property>
             <property name="toolTip">
-             <string/>
+             <string>编辑</string>
             </property>
             <property name="autoFillBackground">
              <bool>false</bool>
@@ -151,7 +151,7 @@ QPushButton:checked{
              </size>
             </property>
             <property name="toolTip">
-             <string/>
+             <string>添加</string>
             </property>
             <property name="autoFillBackground">
              <bool>false</bool>
@@ -196,7 +196,7 @@ QPushButton:pressed{
              </size>
             </property>
             <property name="toolTip">
-             <string/>
+             <string>删除</string>
             </property>
             <property name="autoFillBackground">
              <bool>false</bool>
@@ -264,7 +264,7 @@ QHeaderView::section:last{
            <enum>Qt::NoPen</enum>
           </property>
           <attribute name="horizontalHeaderVisible">
-           <bool>false</bool>
+           <bool>true</bool>
           </attribute>
           <attribute name="horizontalHeaderStretchLastSection">
            <bool>true</bool>
@@ -527,7 +527,7 @@ QComboBox QAbstractItemView::item:selected
              </size>
             </property>
             <property name="toolTip">
-             <string/>
+             <string>箭头</string>
             </property>
             <property name="autoFillBackground">
              <bool>false</bool>
@@ -582,7 +582,7 @@ QPushButton:checked{
              </size>
             </property>
             <property name="toolTip">
-             <string/>
+             <string>抓手</string>
             </property>
             <property name="autoFillBackground">
              <bool>false</bool>
@@ -647,7 +647,7 @@ QPushButton:checked{
              </size>
             </property>
             <property name="toolTip">
-             <string/>
+             <string>重置</string>
             </property>
             <property name="autoFillBackground">
              <bool>false</bool>

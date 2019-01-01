@@ -3,6 +3,7 @@
 #include <QColor>
 #include <QDebug>
 
+
 ChartModel::ChartModel(QObject *parent)
     : QAbstractTableModel(parent)
 {
@@ -26,7 +27,9 @@ bool ChartModel::setData(const QModelIndex &index, const QVariant &value, int ro
     {
         if(index.column() == COL_SHOW)
         {
-            m_data[index.row()].show = value.toBool();
+            bool show = value.toBool();
+            m_data[index.row()].show = show;
+            emit showChanged(m_data[index.row()].id, show);
         }
         else if(index.column() == COL_STAR)
         {
@@ -34,7 +37,9 @@ bool ChartModel::setData(const QModelIndex &index, const QVariant &value, int ro
         }
         else if(index.column() == COL_COLOR)
         {
-            m_data[index.row()].color = value.toUInt();
+            unsigned color = value.toUInt();
+            m_data[index.row()].color = color;
+            emit colorChanged(m_data[index.row()].id, color);
         }
         emit dataChanged(index, index);
     }
@@ -65,7 +70,10 @@ QVariant ChartModel::data(const QModelIndex &index, int role) const
     }
     if(role == Qt::UserRole)
     {
-        if(index.column() == COL_SHOW)
+        if(index.column() == COL_NAME)
+        {
+            return m_data[index.row()].id;
+        }else if(index.column() == COL_SHOW)
         {
             return m_data[index.row()].show;
         }
@@ -110,31 +118,12 @@ bool ChartModel::removeRow(int row, const QModelIndex &parent)
     return QAbstractTableModel::removeRow(row, parent);
 }
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-#include "chartplot.h"
 
-void ChartModel::addVariate()
+
+void ChartModel::addVariate(const ChartData &data)
 {
-    static int id = 0;
-    VariateData data;
-    data.id = QString::number(id);
-    data.variateName = QString("列车速度%1").arg(id);
-    data.length = rand() % 2 ? 1 : 8;
-//    data.value = data.length == 1 ? (rand % 2) : (rand % 100);
-
-    addVariate(data);
-    ++id;
-}
-
-void ChartModel::addVariate(const VariateData &data)
-{
-    ChartData cdata;
-    cdata.id = data.id;
-    cdata.name = data.variateName;
-    cdata.show = true;
-    cdata.star = false;
-    cdata.color = getRandomColor();
     beginResetModel();
-    m_data.append(cdata);
+    m_data.append(data);
     endResetModel();
 }
 

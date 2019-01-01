@@ -19,6 +19,7 @@ using namespace QtCharts;
 
 class AnalogSeries;
 class DigitalSeries;
+class ChartModel;
 
 struct VariateData
 {
@@ -36,6 +37,18 @@ struct VariateData
     QString variateName;
 };
 
+struct ChartData
+{
+    QString id;         // from VariateData
+    QString name;       // from VariateData'
+    int length;         // from VariateData
+    float value = 0;    // value
+    unsigned color;     // color
+    bool show;          // if show in chart
+    bool star;          // if save for next open
+};
+
+
 class ChartPlot : public QWidget
 {
     Q_OBJECT
@@ -45,7 +58,7 @@ public:
     ~ChartPlot();
 
     // 添加变量
-    void addVariable(const VariateData &data);
+    void addVariable(const ChartData &data);
     // 为变量ID加点
     void addPoint(QString id, qreal time, qreal val);
     // 所有变量加点完成
@@ -54,12 +67,23 @@ public:
     QVector<QString> getAllVariableIds();
 
 public slots:
+    // 添加变量
+    void addVariate();
     void toggleColumnHide(bool checked);
+
+    void onShowChanged(QString id, bool show);
+    void onColorChanged(QString id, unsigned color);
+
+private:
+    void removeVariable(QString id);
+    unsigned getRandomColor() const;
 
 private:
     Ui::ChartPanel *ui;
 
     QChart *m_chart;
+    ChartModel *m_model;
+
     QValueAxis *m_analogAxisY;
     QValueAxis *m_digitalAxisY;
 
