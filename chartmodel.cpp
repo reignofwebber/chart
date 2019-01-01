@@ -114,15 +114,15 @@ bool ChartModel::removeRow(int row, const QModelIndex &parent)
 {
     beginRemoveRows(parent, row, row);
     m_data.removeAt(row);
+
     // remove from m_id_row_map
-    for(auto itr = m_id_row_map.begin(); itr != m_id_row_map.end(); ++itr)
+    m_id_row_map.clear();
+    for(int i = 0; i < rowCount(QModelIndex()); ++i)
     {
-        if(itr.value() == row)
-        {
-            m_id_row_map.erase(itr);
-            break;
-        }
+        QModelIndex inx = index(i, COL_NAME);
+        m_id_row_map[data(inx, Qt::UserRole).toString()] = i;
     }
+
     endRemoveRows();
     return QAbstractTableModel::removeRow(row, parent);
 }

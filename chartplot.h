@@ -48,6 +48,7 @@ struct ChartData
     bool star;          // if save for next open
 };
 
+class ChartPanelView;
 
 class ChartPlot : public QWidget
 {
@@ -68,16 +69,19 @@ public:
 
 signals:
     void setValue(QString id, qreal value);
+    void setDigitalValue(QString id, qreal value);
 
 public slots:
     // 添加变量
     void addVariate();
+    void addDigitalVariate();
     void toggleColumnHide(bool checked);
 
     void onShowChanged(QString id, bool show);
     void onColorChanged(QString id, unsigned color);
 
 private:
+    void toggleColumnHide(ChartPanelView *view, bool checked);
     void removeVariable(QString id);
     unsigned getRandomColor() const;
 
@@ -85,13 +89,15 @@ private:
     Ui::ChartPanel *ui;
 
     QChart *m_chart;
-    ChartModel *m_model;
+    ChartModel *m_model;        // analog model
+    ChartModel *m_model_d;      // digital model
 
     QValueAxis *m_analogAxisY;
     QValueAxis *m_digitalAxisY;
 
     QVector<QLineSeries *> m_analogSeriesPool;
     QVector<QLineSeries *> m_digitalSeriesPool;
+    QVector<qreal> m_digitalOffsetPool;
 
     QMap<QString, QLineSeries *> m_analogSeriesMap;
     QMap<QString, QLineSeries *> m_digitalSeriesMap;
@@ -105,12 +111,13 @@ private:
     // 数字量y轴最小值
     qreal m_digitalMinY = 0;
     // 数字量y轴最大值
-    qreal m_digitalMaxY = 12;
+    qreal m_digitalMaxY;    //need calculate by digitalOffset and poolSize
 
     // 波形图总秒数
     int m_totoalSeconds = 60;
     // 数字量间距
-    qreal digitalOffset = 1.2;
+    qreal digitalOffset = 0.2;
+    int m_poolSize = 10;
 };
 
 #endif // CHARTPLOT_H

@@ -16,6 +16,14 @@ ChartPlot::ChartPlot(QWidget *parent)
     ui->setupUi(this);
 
     //////////////////////////////////////////////////////////////////////////////
+    //calculate digitalY
+    m_digitalMaxY = (1 + digitalOffset) * m_poolSize * 2;
+    for(int i = 0; i < m_poolSize; ++i)
+    {
+        m_digitalOffsetPool.append(i * (1 + digitalOffset));
+    }
+
+    //////////////////////////////////////////////////////////////////////////////
     // chart part
     // analog
     m_chart = new QChart;
@@ -35,7 +43,7 @@ ChartPlot::ChartPlot(QWidget *parent)
     m_analogAxisY = new QValueAxis;
     m_analogAxisY->setRange(m_analogMinY, m_analogMaxY);
     m_analogAxisY->setLabelsVisible(false);
-    m_analogAxisY->setTickCount(2);
+    m_analogAxisY->setTickCount(3);
     m_chart->addAxis(m_analogAxisY, Qt::AlignLeft);
 
     m_digitalAxisY = new QValueAxis;
@@ -52,7 +60,7 @@ ChartPlot::ChartPlot(QWidget *parent)
 
 
     // init pool
-    for(int i = 0; i < 5; ++i)
+    for(int i = 0; i < m_poolSize; ++i)
     {
         // analog series
         QLineSeries *series = new QLineSeries;
@@ -73,16 +81,11 @@ ChartPlot::ChartPlot(QWidget *parent)
     }
 
     //////////////////////////////////////////////////////////////////////////////
-    // panel part
-    ui->m_dataTypeCombo->setItemDelegate(new QStyledItemDelegate);
-    ui->m_dataFileCombo->setItemDelegate(new QStyledItemDelegate);
-
-
-    //////////////////////////////////////////////////////////////////////////////
-    // tableview part
+    //// tableview part
+    // analog part
     m_model = new ChartModel;
     ui->m_analogPanelView->setModel(m_model);
-    toggleColumnHide(false);
+    toggleColumnHide(ui->m_analogPanelView, false);
     ui->m_analogPanelView->setItemDelegateForColumn(COL_SHOW, new ChartCheckBoxDelegate);
     ui->m_analogPanelView->setItemDelegateForColumn(COL_STAR, new ChartCheckBoxDelegate);
     ui->m_analogPanelView->setItemDelegateForColumn(COL_COLOR, new ChartButtonDelegate);
@@ -91,10 +94,37 @@ ChartPlot::ChartPlot(QWidget *parent)
     connect(m_model, SIGNAL(colorChanged(QString,uint)), this, SLOT(onColorChanged(QString,uint)));
     connect(this, SIGNAL(setValue(QString,qreal)), m_model, SLOT(setValue(QString,qreal)));
 
-    //////////////////////////////////////////////////////////////////////////////
-    // connections
+    // selection
+    connect(ui->m_analogPanelView->selectionModel(), &QItemSelectionModel::selectionChanged, [=](const QItemSelection &selected, const QItemSelection &deselected)
+    {
+        for(const QModelIndex &index : selected.indexes())
+        {
+            QString id = m_model->data(index, Qt::UserRole).toString();
+            if(m_analogSeriesMap.contains(id))
+            {
+                QLineSeries *series = m_analogSeriesMap[id];
+                QPen pen;
+                pen.setWidth(5);
+                pen.setColor(series->color());
+                series->setPen(pen);
+            }
+        }
+        for(const QModelIndex &index : deselected.indexes())
+        {
+            QString id = m_model->data(index, Qt::UserRole).toString();
+            if(m_analogSeriesMap.contains(id))
+            {
+                QLineSeries *series = m_analogSeriesMap[id];
+                QPen pen;
+                pen.setWidth(2);
+                pen.setColor(series->color());
+                series->setPen(pen);
+            }
+        }
+    });
+
+    // btns
     connect(ui->m_editBtn, SIGNAL(clicked(bool)), this, SLOT(toggleColumnHide(bool)));
-//    connect(ui->m_addBtn, SIGNAL(clicked()), model, SLOT(addVariate()));
     connect(ui->m_addBtn, SIGNAL(clicked()), this, SLOT(addVariate()));
     connect(ui->m_removeBtn, &QPushButton::clicked, [=](){
         QItemSelectionModel *selModel = ui->m_analogPanelView->selectionModel();
@@ -112,6 +142,74 @@ ChartPlot::ChartPlot(QWidget *parent)
             m_model->removeRow(list.at(i).row(), QModelIndex());
         }
     });
+
+    // digital part
+    m_model_d = new ChartModel;
+    ui->m_digitalPanelView->setModel(m_model_d);
+    toggleColumnHide(ui->m_digitalPanelView, false);
+
+    ui->m_digitalPanelView->setItemDelegateForColumn(COL_SHOW, new ChartCheckBoxDelegate);
+    ui->m_digitalPanelView->setItemDelegateForColumn(COL_STAR, new ChartCheckBoxDelegate);
+    ui->m_digitalPanelView->setItemDelegateForColumn(COL_COLOR, new ChartButtonDelegate);
+
+    connect(m_model_d, SIGNAL(showChanged(QString,bool)), this, SLOT(onShowChanged(QString,bool)));
+    connect(m_model_d, SIGNAL(colorChanged(QString,uint)), this, SLOT(onColorChanged(QString,uint)));
+    connect(this, SIGNAL(setDigitalValue(QString,qreal)), m_model_d, SLOT(setValue(QString,qreal)));
+
+    // selection
+    connect(ui->m_digitalPanelView->selectionModel(), &QItemSelectionModel::selectionChanged, [=](const QItemSelection &selected, const QItemSelection &deselected)
+    {
+        for(const QModelIndex &index : selected.indexes())
+        {
+            QString id = m_model_d->data(index, Qt::UserRole).toString();
+            if(m_digitalSeriesMap.contains(id))
+            {
+                QLineSeries *series = m_digitalSeriesMap[id];
+                QPen pen;
+                pen.setWidth(5);
+                pen.setColor(series->color());
+                series->setPen(pen);
+            }
+        }
+        for(const QModelIndex &index : deselected.indexes())
+        {
+            QString id = m_model_d->data(index, Qt::UserRole).toString();
+            if(m_digitalSeriesMap.contains(id))
+            {
+                QLineSeries *series = m_digitalSeriesMap[id];
+                QPen pen;
+                pen.setWidth(2);
+                pen.setColor(series->color());
+                series->setPen(pen);
+            }
+        }
+    });
+    //btns
+    connect(ui->m_editBtn_d, SIGNAL(clicked(bool)), this, SLOT(toggleColumnHide(bool)));
+    connect(ui->m_addBtn_d, SIGNAL(clicked()), this, SLOT(addDigitalVariate()));
+    connect(ui->m_removeBtn_d, &QPushButton::clicked, [=](){
+        QItemSelectionModel *selModel = ui->m_digitalPanelView->selectionModel();
+
+        QModelIndexList list = selModel->selectedIndexes();
+        std::sort(list.begin(), list.end(), [](const QModelIndex &l, const QModelIndex &r)
+        {
+            return l.row() < r.row();
+        });
+
+        for(int i = list.size() - 1; i >=0; --i)
+        {
+            qDebug() << "list  " << list.at(i);
+            QString id = m_model_d->data(list.at(i), Qt::UserRole).toString();
+            removeVariable(id);
+            m_model_d->removeRow(list.at(i).row(), QModelIndex());
+        }
+    });
+
+
+    //////////////////////////////////////////////////////////////////////////////
+    // panel part
+    ui->m_dataTypeCombo->setItemDelegate(new QStyledItemDelegate);
+    ui->m_dataFileCombo->setItemDelegate(new QStyledItemDelegate);
 
     // cursor type
     connect(ui->m_cursorNormalBtn, &QPushButton::clicked, [=](bool checked)
@@ -180,7 +278,13 @@ void ChartPlot::addVariable(const ChartData &data)
         series = m_digitalSeriesPool.back();
         m_digitalSeriesPool.pop_back();
         m_digitalSeriesMap[data.id] = series;
-        m_digitalOffsetMap[data.id] = (4 - m_digitalSeriesPool.size()) * digitalOffset;
+
+        qreal offset = m_digitalOffsetPool.front();
+        m_digitalOffsetPool.pop_front();
+        m_digitalOffsetMap[data.id] = offset;
+
+        // add to panel
+        m_model_d->addVariate(data);
     }
     else
     {
@@ -192,13 +296,19 @@ void ChartPlot::addVariable(const ChartData &data)
         series = m_analogSeriesPool.back();
         m_analogSeriesPool.pop_back();
         m_analogSeriesMap[data.id] = series;
+
+        // add to panel
+        m_model->addVariate(data);
     }
 
-    series->setColor(QColor(data.color));
+    QPen pen;
+    pen.setWidth(2);
+    pen.setColor(QColor(data.color));
+    series->setPen(pen);
+
     if(!data.show) series->hide();
 
-    // add to panel
-    m_model->addVariate(data);
+
 }
 
 void ChartPlot::addPoint(QString id, qreal time, qreal val)
@@ -213,6 +323,8 @@ void ChartPlot::addPoint(QString id, qreal time, qreal val)
 
         m_analogSeriesMap[id]->append(time, val);
 
+        // update panel
+        emit setValue(id, val);
     }
     else if(m_digitalSeriesMap.contains(id))
     {
@@ -226,6 +338,8 @@ void ChartPlot::addPoint(QString id, qreal time, qreal val)
             m_digitalSeriesMap[id]->append(time, val + m_digitalOffsetMap[id]);
         }
 
+        // update panel
+        emit setDigitalValue(id, val);
     }
     else
     {
@@ -235,7 +349,6 @@ void ChartPlot::addPoint(QString id, qreal time, qreal val)
 
     // 更新chart
     m_chart->update();
-    emit setValue(id, val);
 }
 
 QVector<QString> ChartPlot::getAllVariableIds()
@@ -272,15 +385,28 @@ void ChartPlot::addPointComplete()
     }
 }
 
-void ChartPlot::toggleColumnHide(bool checked)
+void ChartPlot::toggleColumnHide(ChartPanelView *view, bool checked)
 {
     if(checked)
     {
-       ui->m_analogPanelView->setColsWidthRatio(QVector<int>() << 1 << 4 << 3 << 1 << 1);
+       view->setColsWidthRatio(QVector<int>() << 1 << 4 << 3 << 1 << 1);
     }
     else
     {
-       ui->m_analogPanelView->setColsWidthRatio(QVector<int>() << 0 << 5 << 3 << 1 << 0);
+       view->setColsWidthRatio(QVector<int>() << 0 << 5 << 3 << 1 << 0);
+    }
+}
+
+void ChartPlot::toggleColumnHide(bool checked)
+{
+    QPushButton *btn = qobject_cast<QPushButton*>(sender());
+    if(ui->m_editBtn == btn)
+    {
+        toggleColumnHide(ui->m_analogPanelView, checked);
+    }
+    else if(ui->m_editBtn_d)
+    {
+        toggleColumnHide(ui->m_digitalPanelView, checked);
     }
 }
 
@@ -291,6 +417,25 @@ void ChartPlot::addVariate()
     data.id = QString::number(id);
     data.variateName = QString("列车速度%1").arg(id);
     data.length = 8;
+
+    ChartData cdata;
+    cdata.id = data.id;
+    cdata.name = data.variateName;
+    cdata.length = data.length;
+    cdata.show = true;
+    cdata.star = false;
+    cdata.color = getRandomColor();
+    addVariable(cdata);
+    ++id;
+}
+
+void ChartPlot::addDigitalVariate()
+{
+    static int id = 100;
+    VariateData data;
+    data.id = QString::number(id);
+    data.variateName = QString("信号%1").arg(id);
+    data.length = 1;
 
     ChartData cdata;
     cdata.id = data.id;
@@ -329,7 +474,7 @@ void ChartPlot::onColorChanged(QString id, unsigned color)
     }
     else if(m_digitalSeriesMap.contains(id))
     {
-        m_analogSeriesMap[id]->setColor(QColor(color));
+        m_digitalSeriesMap[id]->setColor(QColor(color));
     }
     else
     {
@@ -363,6 +508,11 @@ void ChartPlot::removeVariable(QString id)
         m_digitalSeriesMap.remove(id);
         series->clear();
         m_digitalSeriesPool.append(series);
+
+        qreal offset = m_digitalOffsetMap[id];
+        m_digitalOffsetMap.remove(id);
+        m_digitalOffsetPool.append(offset);
+        qSort(m_digitalOffsetPool);
     }
     else
     {
