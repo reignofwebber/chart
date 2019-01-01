@@ -114,6 +114,15 @@ bool ChartModel::removeRow(int row, const QModelIndex &parent)
 {
     beginRemoveRows(parent, row, row);
     m_data.removeAt(row);
+    // remove from m_id_row_map
+    for(auto itr = m_id_row_map.begin(); itr != m_id_row_map.end(); ++itr)
+    {
+        if(itr.value() == row)
+        {
+            m_id_row_map.erase(itr);
+            break;
+        }
+    }
     endRemoveRows();
     return QAbstractTableModel::removeRow(row, parent);
 }
@@ -124,14 +133,20 @@ void ChartModel::addVariate(const ChartData &data)
 {
     beginResetModel();
     m_data.append(data);
+    m_id_row_map[data.id] = m_data.size() - 1;
     endResetModel();
 }
 
-unsigned ChartModel::getRandomColor() const
+void ChartModel::setValue(QString id, qreal value)
 {
-    unsigned data = 0;
-    data += (std::rand() % 256) << 16;
-    data += (std::rand() % 256) << 8;
-    data += (std::rand() % 256);
-    return data;
+    if(m_id_row_map.contains(id))
+    {
+        m_data[m_id_row_map[id]].value = value;
+        QModelIndex i = index(m_id_row_map[id], COL_VALUE);
+        emit dataChanged(i, i);
+    }
+    else
+    {
+        qDebug() << "setValue : can not find id "  << id;
+    }
 }

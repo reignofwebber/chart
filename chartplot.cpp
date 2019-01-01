@@ -89,6 +89,7 @@ ChartPlot::ChartPlot(QWidget *parent)
 
     connect(m_model, SIGNAL(showChanged(QString,bool)), this, SLOT(onShowChanged(QString,bool)));
     connect(m_model, SIGNAL(colorChanged(QString,uint)), this, SLOT(onColorChanged(QString,uint)));
+    connect(this, SIGNAL(setValue(QString,qreal)), m_model, SLOT(setValue(QString,qreal)));
 
     //////////////////////////////////////////////////////////////////////////////
     // connections
@@ -234,6 +235,7 @@ void ChartPlot::addPoint(QString id, qreal time, qreal val)
 
     // 更新chart
     m_chart->update();
+    emit setValue(id, val);
 }
 
 QVector<QString> ChartPlot::getAllVariableIds()

@@ -66,6 +66,9 @@ public:
     // 获取所有变量id
     QVector<QString> getAllVariableIds();
 
+signals:
+    void setValue(QString id, qreal value);
+
 public slots:
     // 添加变量
     void addVariate();

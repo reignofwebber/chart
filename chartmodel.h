@@ -2,6 +2,7 @@
 #define CHARTMODEL_H
 
 #include <QAbstractTableModel>
+#include <QMap>
 #include "chartplot.h"
 
 enum ChartTableCol
@@ -38,13 +39,17 @@ signals:
 public:
     void addVariate(const ChartData &data);
 
-private:
-    unsigned getRandomColor() const;
+
+public slots:
+    // 必须使用信号？
+    void setValue(QString id, qreal value);
 
 private:
 
     // data
     QVector<ChartData> m_data;
+    // aux
+    QMap<QString, int> m_id_row_map;
 };
 
 #endif // CHARTMODEL_H
