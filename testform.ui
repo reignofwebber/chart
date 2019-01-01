@@ -40,8 +40,34 @@ QTableView::item{
      </item>
      <item>
       <widget class="QPushButton" name="pushButton">
+       <property name="styleSheet">
+        <string notr="true">QPushButton{
+	background-color: white;
+	border:none;
+	border-style:outset;
+	border-radius:5px;
+}
+
+QPushButton:hover{
+	background-color: rgb(248, 248, 248);
+	
+}
+
+QPushButton:pressed{
+	background-color:white;
+	
+	margin-top: 1px;
+	margin-left: 1px;
+	border-style:inset;
+}
+</string>
+       </property>
        <property name="text">
-        <string>PushButton</string>
+        <string/>
+       </property>
+       <property name="icon">
+        <iconset>
+         <normaloff>:/images/add.png</normaloff>:/images/add.png</iconset>
        </property>
       </widget>
      </item>

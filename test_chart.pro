@@ -38,7 +38,8 @@ HEADERS += \
     testform.h \
     chartmodel.h \
     chartpanelview.h \
-    chartdelegate.h
+    chartdelegate.h \
+    chartview.h
 
 FORMS += \
         mainwindow.ui \

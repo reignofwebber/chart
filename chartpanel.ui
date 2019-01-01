@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1022</width>
-    <height>622</height>
+    <width>1594</width>
+    <height>733</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -18,7 +18,7 @@
   </property>
   <layout class="QHBoxLayout" name="horizontalLayout" stretch="7,2">
    <item>
-    <widget class="QChartView" name="m_view">
+    <widget class="ChartView" name="m_view">
      <property name="styleSheet">
       <string notr="true"/>
      </property>
@@ -118,11 +118,14 @@
             </property>
             <property name="styleSheet">
              <string notr="true">QPushButton{
-	border-image:url(:/images/edit.png)
+	background:transparent;
+	border-image:url(:/images/edit.png);
 }
 
 QPushButton:checked{
-	border-image:url(:/images/edit_checked.png)
+	border-image:url(:/images/edit_checked.png);
+	margin-top:1px;
+	margin-left:1px;
 }</string>
             </property>
             <property name="text">
@@ -154,10 +157,27 @@ QPushButton:checked{
              <bool>false</bool>
             </property>
             <property name="styleSheet">
-             <string notr="true">border-image:url(:/images/add.png);</string>
+             <string notr="true">QPushButton{
+	background:transparent;
+	border:none;
+}
+
+QPushButton:hover{
+	
+}
+
+QPushButton:pressed{
+	margin-top: 1px;
+	margin-left: 1px;
+}
+</string>
             </property>
             <property name="text">
              <string/>
+            </property>
+            <property name="icon">
+             <iconset resource="res.qrc">
+              <normaloff>:/images/add.png</normaloff>:/images/add.png</iconset>
             </property>
            </widget>
           </item>
@@ -182,10 +202,27 @@ QPushButton:checked{
              <bool>false</bool>
             </property>
             <property name="styleSheet">
-             <string notr="true">border-image:url(:/images/delete.png)</string>
+             <string notr="true">QPushButton{
+	background:transparent;
+	border:none;
+}
+
+QPushButton:hover{
+	
+}
+
+QPushButton:pressed{
+	margin-top: 1px;
+	margin-left: 1px;
+}
+</string>
             </property>
             <property name="text">
              <string/>
+            </property>
+            <property name="icon">
+             <iconset resource="res.qrc">
+              <normaloff>:/images/delete.png</normaloff>:/images/delete.png</iconset>
             </property>
            </widget>
           </item>
@@ -497,15 +534,24 @@ QComboBox QAbstractItemView::item:selected
             </property>
             <property name="styleSheet">
              <string notr="true">QPushButton{
-	border-image:url(:/images/cursor.png)
+	border: 2px solid rgb(109, 122, 224);
+	border-style: outset;
+	border-radius:5px;
 }
 
 QPushButton:checked{
-	border-image:url(:/images/cursor_enable.png)
+	border: 1px groove gray;
+	border-style: inset;
+	margin-top: 1px;
+	margin-left: 1px;
 }</string>
             </property>
             <property name="text">
              <string/>
+            </property>
+            <property name="icon">
+             <iconset resource="res.qrc">
+              <normaloff>:/images/cursor.png</normaloff>:/images/cursor.png</iconset>
             </property>
             <property name="checkable">
              <bool>true</bool>
@@ -543,15 +589,24 @@ QPushButton:checked{
             </property>
             <property name="styleSheet">
              <string notr="true">QPushButton{
-	border-image:url(:/images/hand.png)
+	border: 2px solid rgb(109, 122, 224);
+	border-style: outset;
+	border-radius:5px;
 }
 
 QPushButton:checked{
-	border-image:url(:/images/hand-rock.png)
+	border: 1px groove gray;
+	border-style: inset;
+	margin-top: 1px;
+	margin-left: 1px;
 }</string>
             </property>
             <property name="text">
              <string/>
+            </property>
+            <property name="icon">
+             <iconset resource="res.qrc">
+              <normaloff>:/images/hand.png</normaloff>:/images/hand.png</iconset>
             </property>
             <property name="checkable">
              <bool>true</bool>
@@ -572,43 +627,61 @@ QPushButton:checked{
            </spacer>
           </item>
           <item row="1" column="0">
-           <widget class="QPushButton" name="m_pauseBtn">
+           <widget class="QPushButton" name="m_resetBtn">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
               <horstretch>0</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
             </property>
+            <property name="minimumSize">
+             <size>
+              <width>32</width>
+              <height>32</height>
+             </size>
+            </property>
             <property name="maximumSize">
              <size>
-              <width>16</width>
-              <height>16</height>
+              <width>32</width>
+              <height>32</height>
              </size>
             </property>
             <property name="toolTip">
-             <string>重置波形图</string>
+             <string/>
             </property>
             <property name="autoFillBackground">
              <bool>false</bool>
             </property>
             <property name="styleSheet">
              <string notr="true">QPushButton{
-	border-image:url(:/images/edit.png)
+	border: 2px solid rgb(109, 122, 224);
+	border-style: outset;
+	border-radius:5px;
 }
 
-QPushButton:checked{
-	border-image:url(:/images/edit_checked.png)
+QPushButton:pressed{
+	border: 1px groove gray;
+	border-style: inset;
+	margin-top: 1px;
+	margin-left: 1px;
 }</string>
             </property>
             <property name="text">
              <string/>
             </property>
+            <property name="icon">
+             <iconset resource="res.qrc">
+              <normaloff>:/images/reset.png</normaloff>:/images/reset.png</iconset>
+            </property>
             <property name="checkable">
-             <bool>true</bool>
+             <bool>false</bool>
+            </property>
+            <property name="checked">
+             <bool>false</bool>
             </property>
            </widget>
           </item>
-          <item row="1" column="1" colspan="2">
+          <item row="1" column="1">
            <spacer name="horizontalSpacer_5">
             <property name="orientation">
              <enum>Qt::Horizontal</enum>
@@ -677,16 +750,18 @@ QPushButton:checked{
  </widget>
  <customwidgets>
   <customwidget>
-   <class>QChartView</class>
-   <extends>QGraphicsView</extends>
-   <header location="global">QtCharts</header>
-  </customwidget>
-  <customwidget>
    <class>ChartPanelView</class>
    <extends>QTableView</extends>
    <header>chartpanelview.h</header>
   </customwidget>
+  <customwidget>
+   <class>ChartView</class>
+   <extends>QGraphicsView</extends>
+   <header>chartview.h</header>
+  </customwidget>
  </customwidgets>
- <resources/>
+ <resources>
+  <include location="res.qrc"/>
+ </resources>
  <connections/>
 </ui>

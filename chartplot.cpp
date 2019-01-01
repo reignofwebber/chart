@@ -78,7 +78,6 @@ ChartPlot::ChartPlot(QWidget *parent)
     ui->m_dataFileCombo->setItemDelegate(new QStyledItemDelegate);
 
 
-
     //////////////////////////////////////////////////////////////////////////////
     // tableview part
     ChartModel *model = new ChartModel;
@@ -121,6 +120,8 @@ ChartPlot::ChartPlot(QWidget *parent)
             ui->m_view->setRubberBand(QChartView::NoRubberBand);
         }
     });
+    // default m_cursorNormalBtn is enabled
+    ui->m_view->setRubberBand(QChartView::HorizontalRubberBand);
     connect(ui->m_cursorHandBtn, &QPushButton::clicked, [=](bool checked)
     {
         ui->m_cursorHandBtn->setChecked(checked);
@@ -133,6 +134,12 @@ ChartPlot::ChartPlot(QWidget *parent)
         {
             ui->m_view->setCursor(Qt::ArrowCursor);
         }
+    });
+    // reset btn clicked
+    connect(ui->m_resetBtn, &QPushButton::clicked, [=]()
+    {
+        QDateTime now = QDateTime::currentDateTime();
+        axisX->setRange(now, now.addSecs(m_totoalSeconds));
     });
 
     //////////////////////////////////////////////////////////////////////////////
