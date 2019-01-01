@@ -124,6 +124,33 @@ ChartPlot::ChartPlot(QWidget *parent)
     });
 
     // btns
+    connect(ui->m_enableAnalogBtn, &QPushButton::clicked, [=](bool checked)
+    {
+        if(checked)
+        {
+            // restore maxY
+            if(ui->m_enableDigitalBtn->isChecked())
+            {
+                m_analogAxisY->setRange(-m_analogAxisY->max(), m_analogAxisY->max());
+                m_digitalAxisY->setRange(0, m_digitalMaxY);
+            }
+            else
+                m_analogAxisY->setRange(0, m_analogAxisY->max());
+            for(auto itr = m_analogSeriesMap.begin(); itr != m_analogSeriesMap.end(); ++itr)
+            {
+                itr.value()->show();
+            }
+        }
+        else
+        {
+            if(ui->m_enableDigitalBtn->isChecked()) m_digitalAxisY->setRange(0, m_digitalMaxY / 2);
+
+            for(auto itr = m_analogSeriesMap.begin(); itr != m_analogSeriesMap.end(); ++itr)
+            {
+                itr.value()->hide();
+            }
+        }
+    });
     connect(ui->m_editBtn, SIGNAL(clicked(bool)), this, SLOT(toggleColumnHide(bool)));
     connect(ui->m_addBtn, SIGNAL(clicked()), this, SLOT(addVariate()));
     connect(ui->m_removeBtn, &QPushButton::clicked, [=](){
@@ -184,7 +211,35 @@ ChartPlot::ChartPlot(QWidget *parent)
             }
         }
     });
+
     //btns
+    connect(ui->m_enableDigitalBtn, &QPushButton::clicked, [=](bool checked)
+    {
+        if(checked)
+        {
+            if(ui->m_enableAnalogBtn->isChecked())
+            {
+                m_analogAxisY->setRange(-m_analogAxisY->max(), m_analogAxisY->max());
+                m_digitalAxisY->setRange(0, m_digitalMaxY);
+            }
+
+            else
+                m_digitalAxisY->setRange(0, m_digitalMaxY / 2);
+
+            for(auto itr = m_digitalSeriesMap.begin(); itr != m_digitalSeriesMap.end(); ++itr)
+            {
+                itr.value()->show();
+            }
+        }
+        else
+        {
+            if(ui->m_enableAnalogBtn->isChecked()) m_analogAxisY->setRange(0, m_analogAxisY->max());
+            for(auto itr = m_digitalSeriesMap.begin(); itr != m_digitalSeriesMap.end(); ++itr)
+            {
+                itr.value()->hide();
+            }
+        }
+    });
     connect(ui->m_editBtn_d, SIGNAL(clicked(bool)), this, SLOT(toggleColumnHide(bool)));
     connect(ui->m_addBtn_d, SIGNAL(clicked()), this, SLOT(addDigitalVariate()));
     connect(ui->m_removeBtn_d, &QPushButton::clicked, [=](){
@@ -202,6 +257,23 @@ ChartPlot::ChartPlot(QWidget *parent)
             QString id = m_model_d->data(list.at(i), Qt::UserRole).toString();
             removeVariable(id);
             m_model_d->removeRow(list.at(i).row(), QModelIndex());
+        }
+    });
+    connect(ui->m_playBtn, &QPushButton::clicked, [=](bool checked)
+    {
+        if(checked)
+        {
+            QIcon icon;
+            icon.addFile(QStringLiteral(":/images/play.png"), QSize(), QIcon::Normal, QIcon::Off);
+            ui->m_playBtn->setIcon(icon);
+            ui->m_playBtn->setToolTip("播放");
+        }
+        else
+        {
+            QIcon icon;
+            icon.addFile(QStringLiteral(":/images/pause.png"), QSize(), QIcon::Normal, QIcon::Off);
+            ui->m_playBtn->setIcon(icon);
+            ui->m_playBtn->setToolTip("暂停");
         }
     });
 
@@ -318,7 +390,10 @@ void ChartPlot::addPoint(QString id, qreal time, qreal val)
         if(val < m_analogAxisY->min() || val > m_analogAxisY->max())
         {
             qreal positive = std::abs(val) + 10;
-            m_analogAxisY->setRange(-positive, positive);
+            if(ui->m_enableAnalogBtn->isChecked() && !ui->m_enableDigitalBtn->isChecked())
+                m_analogAxisY->setRange(0, positive);
+            else
+                m_analogAxisY->setRange(-positive, positive);
         }
 
         m_analogSeriesMap[id]->append(time, val);
@@ -368,6 +443,7 @@ QVector<QString> ChartPlot::getAllVariableIds()
 // 只要有一个超界， 就滚动chart
 void ChartPlot::addPointComplete()
 {
+    if(ui->m_playBtn->isChecked()) return;
     for(auto itr = m_analogSeriesMap.begin(); itr != m_analogSeriesMap.end(); ++itr)
     {
         QLineSeries *series = itr.value();
@@ -380,7 +456,22 @@ void ChartPlot::addPointComplete()
             if(totalSeconds < 1) totalSeconds = 1;
             qreal pertick = m_chart->plotArea().width()/totalSeconds;
             m_chart->scroll(pertick, 0);
-            break;
+            return;
+        }
+    }
+    for(auto itr = m_digitalSeriesMap.begin(); itr != m_digitalSeriesMap.end(); ++itr)
+    {
+        QLineSeries *series = itr.value();
+        if(series->count() == 0) break;
+        QDateTimeAxis *axisX = dynamic_cast<QDateTimeAxis *>(m_chart->axisX());
+
+        if(series->at(series->count() - 1).x() > axisX->max().toMSecsSinceEpoch())
+        {
+            quint64 totalSeconds = axisX->max().toSecsSinceEpoch() - axisX->min().toSecsSinceEpoch();
+            if(totalSeconds < 1) totalSeconds = 1;
+            qreal pertick = m_chart->plotArea().width()/totalSeconds;
+            m_chart->scroll(pertick, 0);
+            return;
         }
     }
 }
@@ -512,7 +603,7 @@ void ChartPlot::removeVariable(QString id)
         qreal offset = m_digitalOffsetMap[id];
         m_digitalOffsetMap.remove(id);
         m_digitalOffsetPool.append(offset);
-        qSort(m_digitalOffsetPool);
+        std::sort(m_digitalOffsetPool.begin(), m_digitalOffsetPool.end());
     }
     else
     {

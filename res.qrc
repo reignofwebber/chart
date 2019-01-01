@@ -18,5 +18,7 @@
         <file>images/hand.png</file>
         <file>images/hand-rock.png</file>
         <file>images/settings.png</file>
+        <file>images/pause.png</file>
+        <file>images/play.png</file>
     </qresource>
 </RCC>
