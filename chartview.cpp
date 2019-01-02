@@ -66,6 +66,7 @@ ChartView::ChartView(QWidget *parent)
 
     // cursor item
     m_cursor = new CursorItem(m_chart);
+    m_cursor->hide();
 
 
     // init pool
@@ -116,6 +117,25 @@ void ChartView::mouseMoveEvent(QMouseEvent *event)
 {
     QChartView::mouseMoveEvent(event);
     m_cursor->setPos(mapToScene(event->pos()).x(), 0);
+
+    quint64 time = m_chart->mapToValue(event->pos()).x();
+//    qDebug() << QDateTime::fromMSecsSinceEpoch(time);
+
+    QString text = QString("\n时间: ");
+    text.append(QDateTime::fromMSecsSinceEpoch(time).toString("yyyy.MM.dd-hh:mm:ss.zzz\n\n"));
+
+    for(auto itr = m_analogSeriesMap.begin(); itr != m_analogSeriesMap.end(); ++itr)
+    {
+        QLineSeries *series = itr.value();
+        if(!series->isVisible()) continue;
+        int index = getIndex(itr.key(), time);
+        if(index == -1) continue;
+        qDebug() << index << ", point is " << series->at(index);
+        text.append(m_id_name_map[itr.key()]);
+        text.append(QString(": %1\n").arg(interpolateY(itr.key(), index, time)));
+    }
+
+    m_cursor->setText(text);
 }
 
 
@@ -201,7 +221,7 @@ void ChartView::setChartShow(ChartType type, bool show)
     }
 }
 
-void ChartView::addVariable(ChartType type, const QString &id, unsigned color)
+void ChartView::addVariable(ChartType type, const QString &id, const QString &name, unsigned color)
 {
     QLineSeries *series;
     if(type == ANALOG_TYPE)
@@ -215,6 +235,8 @@ void ChartView::addVariable(ChartType type, const QString &id, unsigned color)
         m_analogSeriesPool.pop_back();
         m_analogSeriesMap[id] = series;
 
+        // id name map
+        m_id_name_map[id] = name;
     }
     else if(type == DIGITAL_TYPE)
     {
@@ -230,6 +252,9 @@ void ChartView::addVariable(ChartType type, const QString &id, unsigned color)
         qreal offset = m_digitalOffsetPool.front();
         m_digitalOffsetPool.pop_front();
         m_digitalOffsetMap[id] = offset;
+
+        // id name map
+        m_id_name_map[id] = name;
 
     }
     else
@@ -255,6 +280,9 @@ void ChartView::removeVariable(ChartType type, const QString &id)
             m_analogSeriesMap.remove(id);
             series->clear();
             m_analogSeriesPool.append(series);
+
+            // id name map
+            m_id_name_map.remove(id);
         }else
         {
             qDebug() << "removeVariable -> no registered id " << id;
@@ -273,6 +301,9 @@ void ChartView::removeVariable(ChartType type, const QString &id)
             m_digitalOffsetMap.remove(id);
             m_digitalOffsetPool.append(offset);
             std::sort(m_digitalOffsetPool.begin(), m_digitalOffsetPool.end());
+
+            // id name map
+            m_id_name_map.remove(id);
         }else
         {
             qDebug() << "removeVariable -> no registered id " << id;
@@ -359,7 +390,7 @@ void ChartView::addPoint(QString id, qreal time, qreal val)
     }
     else
     {
-        qDebug() << "unregistered id " << id;
+//        qDebug() << "unregistered id " << id;
         return;
     }
 
@@ -413,4 +444,88 @@ void ChartView::addPointComplete()
             return;
         }
     }
+}
+
+void ChartView::showCursor(bool show)
+{
+    if(show)
+        m_cursor->show();
+    else
+        m_cursor->hide();
+}
+
+int ChartView::getIndex(const QString id, quint64 time) const
+{
+    // retrieve series;
+    QLineSeries *series;
+    if(m_analogSeriesMap.contains(id))
+        series = m_analogSeriesMap[id];
+    else if(m_digitalSeriesMap.contains(id))
+        series = m_digitalSeriesMap[id];
+    else
+    {
+        qDebug() << "getIndex -> no registered id";
+        return 0;
+    }
+
+    // calculate approximately position
+    if(series->count() == 0) return -1;
+    int left = 0;
+    int right = series->count() - 1;
+
+
+    quint64 min_time = series->at(left).x();
+    quint64 max_time = series->at(right).x();
+
+    if(time <= min_time) return 0;
+    if(time >= max_time) return series->count() - 1;
+
+    while(true)
+    {
+        int mark = (left + right) / 2;
+        if(series->at(mark).x() > time)
+        {
+            right = mark;
+        }else if(series->at(mark).x() < time)
+        {
+            left = mark;
+        }else
+        {
+            return mark;
+        }
+        if(right - left <= 1)
+        {
+            return left;
+        }
+    }
+}
+
+qreal ChartView::interpolateY(const QString id, int index, quint64 time) const
+{
+    // retrieve series;
+    QLineSeries *series;
+    if(m_analogSeriesMap.contains(id))
+        series = m_analogSeriesMap[id];
+    else if(m_digitalSeriesMap.contains(id))
+        series = m_digitalSeriesMap[id];
+    else
+    {
+        qDebug() << "getIndex -> no registered id";
+        return 0;
+    }
+
+    if(index >= series->count() - 1) return series->at(series->count() - 1).y();
+    if(index < 0) return 0;
+
+    quint64 start_time = series->at(index).x();
+    quint64 end_time = series->at(index + 1).x();
+
+    qreal start_val = series->at(index).y();
+    qreal end_val = series->at(index + 1).y();
+
+    if(time < start_time) return 0;
+
+    // discard presicion
+    if(end_time - start_time < 0.01) return start_val;
+    return start_val + (time - start_time) * (end_val - start_val) / (end_time - start_time);
 }

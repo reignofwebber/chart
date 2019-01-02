@@ -2,6 +2,7 @@
 #define CURSORITEM_H
 
 #include <QGraphicsItem>
+#include <QFont>
 
 namespace QtCharts {
     class QChart;
@@ -21,6 +22,12 @@ public:
 private:
     QtCharts::QChart *m_chart;
     qreal m_positionX;
+
+    QColor m_color;
+    QColor m_textColor;
+    QFont m_font;
+    QString m_text;
+    QRectF m_textRect;
 };
 
 #endif // CURSORITEM_H

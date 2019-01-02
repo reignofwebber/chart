@@ -207,6 +207,8 @@ ChartPlot::ChartPlot(QWidget *parent)
             ui->m_view->setCursor(Qt::ArrowCursor);
         }
     });
+    // toggle measure btn
+    connect(ui->m_measureBtn, SIGNAL(clicked(bool)), ui->m_view, SLOT(showCursor(bool)));
     // reset btn clicked
     connect(ui->m_resetBtn, SIGNAL(clicked(bool)), ui->m_view, SLOT(resetAxisX()));
 
@@ -233,14 +235,14 @@ void ChartPlot::addVariable(const ChartData &data)
     if(data.length == 1)
     {
         // add to chart
-        ui->m_view->addVariable(ChartView::DIGITAL_TYPE, data.id, data.color);
+        ui->m_view->addVariable(ChartView::DIGITAL_TYPE, data.id, data.name, data.color);
         // add to panel
         m_model_d->addVariate(data);
     }
     else
     {
         // add to chart
-        ui->m_view->addVariable(ChartView::ANALOG_TYPE, data.id, data.color);
+        ui->m_view->addVariable(ChartView::ANALOG_TYPE, data.id, data.name, data.color);
         // add to panel
         m_model->addVariate(data);
     }

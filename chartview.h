@@ -14,6 +14,7 @@ namespace QtCharts {
 
 class CursorItem;
 class ChartData;
+class QDateTime;
 
 using namespace QtCharts;
 
@@ -38,7 +39,7 @@ public:
     void setChartShow(ChartType type, bool show);
 
     //
-    void addVariable(ChartType type, const QString &id, unsigned color);
+    void addVariable(ChartType type, const QString &id, const QString &name, unsigned color);
     void removeVariable(ChartType type, const QString &id);
     // 为变量ID加点
     void addPoint(QString id, qreal time, qreal val);
@@ -55,12 +56,19 @@ public slots:
     void onShowChanged(const QString &id, bool show);
     void onColorChanged(const QString &id, unsigned color);
     void resetAxisX();
+    void showCursor(bool show);
 
 
 protected:
     void mousePressEvent(QMouseEvent *event);
     void mouseReleaseEvent(QMouseEvent *event);
     void mouseMoveEvent(QMouseEvent *event);
+
+private:
+    // find series index when x is known
+    int getIndex(const QString id, quint64 time) const;
+    qreal interpolateY(const QString id, int index, quint64 time) const;
+
 
 private:
     qreal press_x;      // 记录press点的x值
@@ -79,6 +87,10 @@ private:
     QMap<QString, QLineSeries *> m_analogSeriesMap;
     QMap<QString, QLineSeries *> m_digitalSeriesMap;
     QMap<QString, qreal> m_digitalOffsetMap;
+
+    // id --> name map
+    QMap<QString, QString> m_id_name_map;
+
 
     // analog
     // 模拟量y轴最小值
