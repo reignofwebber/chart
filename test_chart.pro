@@ -31,7 +31,8 @@ SOURCES += \
     chartmodel.cpp \
     chartpanelview.cpp \
     chartdelegate.cpp \
-    chartsettingsdls.cpp
+    chartsettingsdls.cpp \
+    cursoritem.cpp
 
 HEADERS += \
     testthread.h \
@@ -41,7 +42,8 @@ HEADERS += \
     chartpanelview.h \
     chartdelegate.h \
     chartview.h \
-    chartsettingsdls.h
+    chartsettingsdls.h \
+    cursoritem.h
 
 FORMS += \
         mainwindow.ui \

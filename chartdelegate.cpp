@@ -21,13 +21,13 @@ void ChartCheckBoxDelegate::paint(QPainter *painter, const QStyleOptionViewItem 
 
     QCheckBox checkBox;
     if(index.column() == COL_SHOW)
-        checkBox.setStyleSheet("QCheckBox::indicator{\n	width:20px;\n	height:20px;\n}\n\nQCheckBox::indicator::unchecked{\n	image:url(:/images/unchecked_checkbox.png)\n}\n\nQCheckBox::indicator::checked{\n	image:url(:/images/checked_checkbox.png)\n}");
+        checkBox.setStyleSheet("QCheckBox::indicator{\n	width:15px;\n	height:15px;\n}\n\nQCheckBox::indicator::unchecked{\n	image:url(:/images/unchecked_checkbox.png)\n}\n\nQCheckBox::indicator::checked{\n	image:url(:/images/checked_checkbox.png)\n}");
     else if(index.column() == COL_STAR)
-        checkBox.setStyleSheet("QCheckBox::indicator{\n	width:20px;\n	height:20px;\n}\n\nQCheckBox::indicator::unchecked{\n	image:url(:/images/star_unstar.png)\n}\n\nQCheckBox::indicator::unchecked::hover{\n	image:url(:/images/star_hover.png)\n}\n\nQCheckBox::indicator::checked{\n	image:url(:/images/star_star.png)\n}");
+        checkBox.setStyleSheet("QCheckBox::indicator{\n	width:15px;\n	height:15px;\n}\n\nQCheckBox::indicator::unchecked{\n	image:url(:/images/star_unstar.png)\n}\n\nQCheckBox::indicator::unchecked::hover{\n	image:url(:/images/star_hover.png)\n}\n\nQCheckBox::indicator::checked{\n	image:url(:/images/star_star.png)\n}");
     checkBox.setChecked(data);
     checkBox.resize(option.rect.size()/2);
     painter->save();
-    painter->translate(option.rect.x() + (option.rect.width() - 20)/2, option.rect.y() + (option.rect.height() - 20)/2);
+    painter->translate(option.rect.x() + (option.rect.width() - 15)/2, option.rect.y() + (option.rect.height() - 20)/2);
     checkBox.render(painter);
     painter->restore();
 

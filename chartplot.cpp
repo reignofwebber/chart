@@ -3,6 +3,7 @@
 #include "testthread.h"
 #include "chartdelegate.h"
 #include "chartmodel.h"
+#include "cursoritem.h"
 
 #include <QThread>
 #include <QtCharts>
@@ -57,6 +58,10 @@ ChartPlot::ChartPlot(QWidget *parent)
     m_chart->setBackgroundRoundness(0);
     m_chart->setMargins(QMargins(0, 0, 0, -1));
     ui->m_view->setRenderHint(QPainter::Antialiasing);
+
+    // cursor item
+    CursorItem *item = new CursorItem(m_chart);
+    ui->m_view->addCursor(item);
 
 
     // init pool
