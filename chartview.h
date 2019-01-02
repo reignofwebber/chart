@@ -2,71 +2,99 @@
 #define CHARTVIEW_H
 
 #include <QChartView>
-#include <QChart>
 
 #include <QDebug>
 
-#include "cursoritem.h"
+namespace QtCharts {
+    class QChart;
+    class QLineSeries;
+    class QValueAxis;
+    class QDateTimeAxis;
+}
 
+class CursorItem;
+class ChartData;
 
+using namespace QtCharts;
 
 class ChartView : public QtCharts::QChartView
 {
+    Q_OBJECT
+
 public:
-    ChartView(QWidget *parent = 0)
-        : QtCharts::QChartView(parent)
+    enum ChartType
     {
-        setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-        setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+        ANALOG_TYPE,
+        DIGITAL_TYPE
+    };
+public:
+    ChartView(QWidget *parent = 0);
 
-        setMouseTracking(true);
+    //
+    void setChartBold(ChartType type, const QString &id, bool bold);
+    //
+    void setChartHalf();
+    void setChartFull(ChartType type);
+    void setChartShow(ChartType type, bool show);
 
-    }
+    //
+    void addVariable(ChartType type, const QString &id, unsigned color);
+    void removeVariable(ChartType type, const QString &id);
+    // 为变量ID加点
+    void addPoint(QString id, qreal time, qreal val);
+    // 获取所有变量id
+    QVector<QString> getAllVariableIds();
+    // 所有变量加点完成
+    void addPointComplete();
 
-    void setChart(QtCharts::QChart *chart)
-    {
-        m_chart = chart;
-        QChartView::setChart(chart);
-    }
+signals:
+    void setValue(QString id, qreal value);
+    void setDigitalValue(QString id, qreal value);
 
-    void addCursor(CursorItem * item)
-    {
-        m_item = item;
-    }
+public slots:
+    void onShowChanged(const QString &id, bool show);
+    void onColorChanged(const QString &id, unsigned color);
+    void resetAxisX();
+
 
 protected:
-    void mousePressEvent(QMouseEvent *event)
-    {
-        if(rubberBand() == QChartView::NoRubberBand && cursor().shape() == Qt::OpenHandCursor)
-        {
-            press_x = mapToScene(event->pos()).x();
-            setCursor(Qt::ClosedHandCursor);
-        }
-        QChartView::mousePressEvent(event);
-    }
-
-    void mouseReleaseEvent(QMouseEvent *event)
-    {
-        if(rubberBand() == QChartView::NoRubberBand && cursor().shape() == Qt::ClosedHandCursor)
-        {
-            qreal distance = press_x - mapToScene(event->pos()).x();
-            this->chart()->scroll(distance, 0);
-            setCursor(Qt::OpenHandCursor);
-        }
-        QChartView::mouseReleaseEvent(event);
-    }
-
-    void mouseMoveEvent(QMouseEvent *event)
-    {
-        QChartView::mouseMoveEvent(event);
-        m_item->setPos(mapToScene(event->pos()).x(), 0);
-    }
+    void mousePressEvent(QMouseEvent *event);
+    void mouseReleaseEvent(QMouseEvent *event);
+    void mouseMoveEvent(QMouseEvent *event);
 
 private:
     qreal press_x;      // 记录press点的x值
 
+    // graphic items
     QtCharts::QChart *m_chart;
-    CursorItem *m_item;
+    CursorItem *m_cursor;
+
+    QValueAxis *m_analogAxisY;
+    QValueAxis *m_digitalAxisY;
+
+    QVector<QLineSeries *> m_analogSeriesPool;
+    QVector<QLineSeries *> m_digitalSeriesPool;
+    QVector<qreal> m_digitalOffsetPool;
+
+    QMap<QString, QLineSeries *> m_analogSeriesMap;
+    QMap<QString, QLineSeries *> m_digitalSeriesMap;
+    QMap<QString, qreal> m_digitalOffsetMap;
+
+    // analog
+    // 模拟量y轴最小值
+    qreal m_analogMinY = -1;
+    // 模拟量y轴最大值
+    qreal m_analogMaxY = 1;
+    // 数字量y轴最小值
+    qreal m_digitalMinY = 0;
+    // 数字量y轴最大值
+    qreal m_digitalMaxY;    //need calculate by digitalOffset and poolSize
+
+    // 波形图总秒数
+    int m_totoalSeconds = 60;
+    // 数字量间距
+    qreal digitalOffset = 0.2;
+    int m_poolSize = 10;
 
 };
 

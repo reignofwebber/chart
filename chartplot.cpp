@@ -9,6 +9,8 @@
 #include <QtCharts>
 #include <QStandardItemModel>
 
+#include "chartview.h"
+
 
 ChartPlot::ChartPlot(QWidget *parent)
     :QWidget(parent)
@@ -16,74 +18,6 @@ ChartPlot::ChartPlot(QWidget *parent)
 {
     ui->setupUi(this);
 
-    //////////////////////////////////////////////////////////////////////////////
-    //calculate digitalY
-    m_digitalMaxY = (1 + digitalOffset) * m_poolSize * 2;
-    for(int i = 0; i < m_poolSize; ++i)
-    {
-        m_digitalOffsetPool.append(i * (1 + digitalOffset));
-    }
-
-    //////////////////////////////////////////////////////////////////////////////
-    // chart part
-    // analog
-    m_chart = new QChart;
-    ui->m_view->setChart(m_chart);
-    m_chart->legend()->hide();
-
-
-    QDateTimeAxis *axisX = new QDateTimeAxis;
-    axisX->setFormat("yy-MM-dd h:mm:ss");
-    auto now = QDateTime::currentDateTime();
-    axisX->setMin(now);
-    axisX->setMax(now.addSecs(m_totoalSeconds));
-    axisX->setTickCount(5);
-//    axisX->hide();
-    m_chart->addAxis(axisX, Qt::AlignBottom);
-
-    m_analogAxisY = new QValueAxis;
-    m_analogAxisY->setRange(m_analogMinY, m_analogMaxY);
-    m_analogAxisY->setLabelsVisible(false);
-    m_analogAxisY->setTickCount(3);
-    m_chart->addAxis(m_analogAxisY, Qt::AlignLeft);
-
-    m_digitalAxisY = new QValueAxis;
-    m_digitalAxisY->setRange(m_digitalMinY, m_digitalMaxY);
-    m_digitalAxisY->setTickCount(2);
-    m_digitalAxisY->hide();
-    m_chart->addAxis(m_digitalAxisY, Qt::AlignLeft);
-
-
-    m_chart->layout()->setContentsMargins(0, 0, 0, 0);
-    m_chart->setBackgroundRoundness(0);
-    m_chart->setMargins(QMargins(0, 0, 0, -1));
-    ui->m_view->setRenderHint(QPainter::Antialiasing);
-
-    // cursor item
-    CursorItem *item = new CursorItem(m_chart);
-    ui->m_view->addCursor(item);
-
-
-    // init pool
-    for(int i = 0; i < m_poolSize; ++i)
-    {
-        // analog series
-        QLineSeries *series = new QLineSeries;
-        m_chart->addSeries(series);
-
-        m_analogSeriesPool.append(series);
-        series->attachAxis(axisX);
-        series->attachAxis(m_analogAxisY);
-
-        // digital series
-        series = new QLineSeries;
-        m_chart->addSeries(series);
-
-        m_digitalSeriesPool.append(series);
-        series->attachAxis(axisX);
-        series->attachAxis(m_digitalAxisY);
-
-    }
 
     //////////////////////////////////////////////////////////////////////////////
     //// tableview part
@@ -95,9 +29,9 @@ ChartPlot::ChartPlot(QWidget *parent)
     ui->m_analogPanelView->setItemDelegateForColumn(COL_STAR, new ChartCheckBoxDelegate);
     ui->m_analogPanelView->setItemDelegateForColumn(COL_COLOR, new ChartButtonDelegate);
 
-    connect(m_model, SIGNAL(showChanged(QString,bool)), this, SLOT(onShowChanged(QString,bool)));
-    connect(m_model, SIGNAL(colorChanged(QString,uint)), this, SLOT(onColorChanged(QString,uint)));
-    connect(this, SIGNAL(setValue(QString,qreal)), m_model, SLOT(setValue(QString,qreal)));
+    connect(m_model, SIGNAL(showChanged(QString,bool)), ui->m_view, SLOT(onShowChanged(QString,bool)));
+    connect(m_model, SIGNAL(colorChanged(QString,uint)), ui->m_view, SLOT(onColorChanged(QString,uint)));
+    connect(ui->m_view, SIGNAL(setValue(QString,qreal)), m_model, SLOT(setValue(QString,qreal)));
 
     // selection
     connect(ui->m_analogPanelView->selectionModel(), &QItemSelectionModel::selectionChanged, [=](const QItemSelection &selected, const QItemSelection &deselected)
@@ -105,26 +39,12 @@ ChartPlot::ChartPlot(QWidget *parent)
         for(const QModelIndex &index : selected.indexes())
         {
             QString id = m_model->data(index, Qt::UserRole).toString();
-            if(m_analogSeriesMap.contains(id))
-            {
-                QLineSeries *series = m_analogSeriesMap[id];
-                QPen pen;
-                pen.setWidth(5);
-                pen.setColor(series->color());
-                series->setPen(pen);
-            }
+            ui->m_view->setChartBold(ChartView::ANALOG_TYPE, id, true);
         }
         for(const QModelIndex &index : deselected.indexes())
         {
             QString id = m_model->data(index, Qt::UserRole).toString();
-            if(m_analogSeriesMap.contains(id))
-            {
-                QLineSeries *series = m_analogSeriesMap[id];
-                QPen pen;
-                pen.setWidth(2);
-                pen.setColor(series->color());
-                series->setPen(pen);
-            }
+            ui->m_view->setChartBold(ChartView::DIGITAL_TYPE, id, false);
         }
     });
 
@@ -135,25 +55,18 @@ ChartPlot::ChartPlot(QWidget *parent)
         {
             // restore maxY
             if(ui->m_enableDigitalBtn->isChecked())
-            {
-                m_analogAxisY->setRange(-m_analogAxisY->max(), m_analogAxisY->max());
-                m_digitalAxisY->setRange(0, m_digitalMaxY);
-            }
+                ui->m_view->setChartHalf();
             else
-                m_analogAxisY->setRange(0, m_analogAxisY->max());
-            for(auto itr = m_analogSeriesMap.begin(); itr != m_analogSeriesMap.end(); ++itr)
-            {
-                itr.value()->show();
-            }
+                ui->m_view->setChartFull(ChartView::ANALOG_TYPE);
+
+            ui->m_view->setChartShow(ChartView::ANALOG_TYPE, true);
         }
         else
         {
-            if(ui->m_enableDigitalBtn->isChecked()) m_digitalAxisY->setRange(0, m_digitalMaxY / 2);
+            if(ui->m_enableDigitalBtn->isChecked())
+                ui->m_view->setChartFull(ChartView::DIGITAL_TYPE);
 
-            for(auto itr = m_analogSeriesMap.begin(); itr != m_analogSeriesMap.end(); ++itr)
-            {
-                itr.value()->hide();
-            }
+            ui->m_view->setChartShow(ChartView::ANALOG_TYPE, false);
         }
     });
     connect(ui->m_editBtn, SIGNAL(clicked(bool)), this, SLOT(toggleColumnHide(bool)));
@@ -170,7 +83,7 @@ ChartPlot::ChartPlot(QWidget *parent)
         for(int i = list.size() - 1; i >=0; --i)
         {
             QString id = m_model->data(list.at(i), Qt::UserRole).toString();
-            removeVariable(id);
+            ui->m_view->removeVariable(ChartView::ANALOG_TYPE, id);
             m_model->removeRow(list.at(i).row(), QModelIndex());
         }
     });
@@ -184,9 +97,9 @@ ChartPlot::ChartPlot(QWidget *parent)
     ui->m_digitalPanelView->setItemDelegateForColumn(COL_STAR, new ChartCheckBoxDelegate);
     ui->m_digitalPanelView->setItemDelegateForColumn(COL_COLOR, new ChartButtonDelegate);
 
-    connect(m_model_d, SIGNAL(showChanged(QString,bool)), this, SLOT(onShowChanged(QString,bool)));
-    connect(m_model_d, SIGNAL(colorChanged(QString,uint)), this, SLOT(onColorChanged(QString,uint)));
-    connect(this, SIGNAL(setDigitalValue(QString,qreal)), m_model_d, SLOT(setValue(QString,qreal)));
+    connect(m_model_d, SIGNAL(showChanged(QString,bool)), ui->m_view, SLOT(onShowChanged(QString,bool)));
+    connect(m_model_d, SIGNAL(colorChanged(QString,uint)), ui->m_view, SLOT(onColorChanged(QString,uint)));
+    connect(ui->m_view, SIGNAL(setDigitalValue(QString,qreal)), m_model_d, SLOT(setValue(QString,qreal)));
 
     // selection
     connect(ui->m_digitalPanelView->selectionModel(), &QItemSelectionModel::selectionChanged, [=](const QItemSelection &selected, const QItemSelection &deselected)
@@ -194,26 +107,12 @@ ChartPlot::ChartPlot(QWidget *parent)
         for(const QModelIndex &index : selected.indexes())
         {
             QString id = m_model_d->data(index, Qt::UserRole).toString();
-            if(m_digitalSeriesMap.contains(id))
-            {
-                QLineSeries *series = m_digitalSeriesMap[id];
-                QPen pen;
-                pen.setWidth(5);
-                pen.setColor(series->color());
-                series->setPen(pen);
-            }
+            ui->m_view->setChartBold(ChartView::DIGITAL_TYPE, id, true);
         }
         for(const QModelIndex &index : deselected.indexes())
         {
             QString id = m_model_d->data(index, Qt::UserRole).toString();
-            if(m_digitalSeriesMap.contains(id))
-            {
-                QLineSeries *series = m_digitalSeriesMap[id];
-                QPen pen;
-                pen.setWidth(2);
-                pen.setColor(series->color());
-                series->setPen(pen);
-            }
+            ui->m_view->setChartBold(ChartView::DIGITAL_TYPE, id, false);
         }
     });
 
@@ -223,26 +122,18 @@ ChartPlot::ChartPlot(QWidget *parent)
         if(checked)
         {
             if(ui->m_enableAnalogBtn->isChecked())
-            {
-                m_analogAxisY->setRange(-m_analogAxisY->max(), m_analogAxisY->max());
-                m_digitalAxisY->setRange(0, m_digitalMaxY);
-            }
-
+                ui->m_view->setChartHalf();
             else
-                m_digitalAxisY->setRange(0, m_digitalMaxY / 2);
+                ui->m_view->setChartFull(ChartView::DIGITAL_TYPE);
 
-            for(auto itr = m_digitalSeriesMap.begin(); itr != m_digitalSeriesMap.end(); ++itr)
-            {
-                itr.value()->show();
-            }
+            ui->m_view->setChartShow(ChartView::DIGITAL_TYPE, true);
         }
         else
         {
-            if(ui->m_enableAnalogBtn->isChecked()) m_analogAxisY->setRange(0, m_analogAxisY->max());
-            for(auto itr = m_digitalSeriesMap.begin(); itr != m_digitalSeriesMap.end(); ++itr)
-            {
-                itr.value()->hide();
-            }
+            if(ui->m_enableAnalogBtn->isChecked())
+                ui->m_view->setChartFull(ChartView::ANALOG_TYPE);
+
+            ui->m_view->setChartShow(ChartView::DIGITAL_TYPE, false);
         }
     });
     connect(ui->m_editBtn_d, SIGNAL(clicked(bool)), this, SLOT(toggleColumnHide(bool)));
@@ -258,9 +149,8 @@ ChartPlot::ChartPlot(QWidget *parent)
 
         for(int i = list.size() - 1; i >=0; --i)
         {
-            qDebug() << "list  " << list.at(i);
             QString id = m_model_d->data(list.at(i), Qt::UserRole).toString();
-            removeVariable(id);
+            ui->m_view->removeVariable(ChartView::DIGITAL_TYPE, id);
             m_model_d->removeRow(list.at(i).row(), QModelIndex());
         }
     });
@@ -318,11 +208,7 @@ ChartPlot::ChartPlot(QWidget *parent)
         }
     });
     // reset btn clicked
-    connect(ui->m_resetBtn, &QPushButton::clicked, [=]()
-    {
-        QDateTime now = QDateTime::currentDateTime();
-        axisX->setRange(now, now.addSecs(m_totoalSeconds));
-    });
+    connect(ui->m_resetBtn, SIGNAL(clicked(bool)), ui->m_view, SLOT(resetAxisX()));
 
     //////////////////////////////////////////////////////////////////////////////
     QThread *thread = new QThread;
@@ -343,142 +229,34 @@ ChartPlot::~ChartPlot()
 
 void ChartPlot::addVariable(const ChartData &data)
 {
-    QLineSeries *series;
     // 区分数字量和模拟量
     if(data.length == 1)
     {
-        if(m_digitalSeriesPool.empty())
-        {
-            qDebug() << "m_digitalSeriesPool is empty";
-            return;
-        }
-        series = m_digitalSeriesPool.back();
-        m_digitalSeriesPool.pop_back();
-        m_digitalSeriesMap[data.id] = series;
-
-        qreal offset = m_digitalOffsetPool.front();
-        m_digitalOffsetPool.pop_front();
-        m_digitalOffsetMap[data.id] = offset;
-
+        // add to chart
+        ui->m_view->addVariable(ChartView::DIGITAL_TYPE, data.id, data.color);
         // add to panel
         m_model_d->addVariate(data);
     }
     else
     {
-        if(m_analogSeriesPool.empty())
-        {
-            qDebug() << "m_digitalSeriesPool is empty";
-            return;
-        }
-        series = m_analogSeriesPool.back();
-        m_analogSeriesPool.pop_back();
-        m_analogSeriesMap[data.id] = series;
-
+        // add to chart
+        ui->m_view->addVariable(ChartView::ANALOG_TYPE, data.id, data.color);
         // add to panel
         m_model->addVariate(data);
     }
-
-    QPen pen;
-    pen.setWidth(2);
-    pen.setColor(QColor(data.color));
-    series->setPen(pen);
-
-    if(!data.show) series->hide();
-
-
 }
 
 void ChartPlot::addPoint(QString id, qreal time, qreal val)
 {
-    if(m_analogSeriesMap.contains(id))
-    {
-        if(val < m_analogAxisY->min() || val > m_analogAxisY->max())
-        {
-            qreal positive = std::abs(val) + 10;
-            if(ui->m_enableAnalogBtn->isChecked() && !ui->m_enableDigitalBtn->isChecked())
-                m_analogAxisY->setRange(0, positive);
-            else
-                m_analogAxisY->setRange(-positive, positive);
-        }
-
-        m_analogSeriesMap[id]->append(time, val);
-
-        // update panel
-        emit setValue(id, val);
-    }
-    else if(m_digitalSeriesMap.contains(id))
-    {
-        if(m_digitalSeriesMap[id]->count() > 0)
-        {
-            m_digitalSeriesMap[id]->append(time, m_digitalSeriesMap[id]->at(m_digitalSeriesMap[id]->count() - 1).y());
-            m_digitalSeriesMap[id]->append(time, val + m_digitalOffsetMap[id]);
-        }
-        else
-        {
-            m_digitalSeriesMap[id]->append(time, val + m_digitalOffsetMap[id]);
-        }
-
-        // update panel
-        emit setDigitalValue(id, val);
-    }
-    else
-    {
-        qDebug() << "unregistered id " << id;
-        return;
-    }
-
-    // 更新chart
-    m_chart->update();
+    ui->m_view->addPoint(id, time, val);
 }
 
-QVector<QString> ChartPlot::getAllVariableIds()
-{
-    QVector<QString> ids;
-    for(auto itr = m_analogSeriesMap.begin(); itr != m_analogSeriesMap.end(); ++itr)
-    {
-        ids.append(itr.key());
-    }
-    for(auto itr = m_digitalSeriesMap.begin(); itr != m_digitalSeriesMap.end(); ++itr)
-    {
-        ids.append(itr.key());
-    }
-    return ids;
-}
 
 // 只要有一个超界， 就滚动chart
 void ChartPlot::addPointComplete()
 {
     if(ui->m_playBtn->isChecked()) return;
-    for(auto itr = m_analogSeriesMap.begin(); itr != m_analogSeriesMap.end(); ++itr)
-    {
-        QLineSeries *series = itr.value();
-        if(series->count() == 0) break;
-        QDateTimeAxis *axisX = dynamic_cast<QDateTimeAxis *>(m_chart->axisX());
-
-        if(series->at(series->count() - 1).x() > axisX->max().toMSecsSinceEpoch())
-        {
-            quint64 totalSeconds = axisX->max().toSecsSinceEpoch() - axisX->min().toSecsSinceEpoch();
-            if(totalSeconds < 1) totalSeconds = 1;
-            qreal pertick = m_chart->plotArea().width()/totalSeconds;
-            m_chart->scroll(pertick, 0);
-            return;
-        }
-    }
-    for(auto itr = m_digitalSeriesMap.begin(); itr != m_digitalSeriesMap.end(); ++itr)
-    {
-        QLineSeries *series = itr.value();
-        if(series->count() == 0) break;
-        QDateTimeAxis *axisX = dynamic_cast<QDateTimeAxis *>(m_chart->axisX());
-
-        if(series->at(series->count() - 1).x() > axisX->max().toMSecsSinceEpoch())
-        {
-            quint64 totalSeconds = axisX->max().toSecsSinceEpoch() - axisX->min().toSecsSinceEpoch();
-            if(totalSeconds < 1) totalSeconds = 1;
-            qreal pertick = m_chart->plotArea().width()/totalSeconds;
-            m_chart->scroll(pertick, 0);
-            return;
-        }
-    }
+    ui->m_view->addPointComplete();
 }
 
 void ChartPlot::toggleColumnHide(ChartPanelView *view, bool checked)
@@ -544,39 +322,6 @@ void ChartPlot::addDigitalVariate()
     ++id;
 }
 
-void ChartPlot::onShowChanged(QString id, bool show)
-{
-    if(m_analogSeriesMap.contains(id))
-    {
-        if(show) m_analogSeriesMap[id]->show();
-        else m_analogSeriesMap[id]->hide();
-    }
-    else if(m_digitalSeriesMap.contains(id))
-    {
-        if(show) m_digitalSeriesMap[id]->show();
-        else m_digitalSeriesMap[id]->hide();
-    }
-    else
-    {
-        qDebug() << "showChanged: no registered id" << id;
-    }
-}
-
-void ChartPlot::onColorChanged(QString id, unsigned color)
-{
-    if(m_analogSeriesMap.contains(id))
-    {
-        m_analogSeriesMap[id]->setColor(QColor(color));
-    }
-    else if(m_digitalSeriesMap.contains(id))
-    {
-        m_digitalSeriesMap[id]->setColor(QColor(color));
-    }
-    else
-    {
-        qDebug() << "colorChanged: no registered id" << id;
-    }
-}
 
 
 unsigned ChartPlot::getRandomColor() const
@@ -586,34 +331,6 @@ unsigned ChartPlot::getRandomColor() const
     data += (std::rand() % 256) << 8;
     data += (std::rand() % 256);
     return data;
-}
-
-void ChartPlot::removeVariable(QString id)
-{
-    QLineSeries *series;
-    if(m_analogSeriesMap.contains(id))
-    {
-        series = m_analogSeriesMap[id];
-        m_analogSeriesMap.remove(id);
-        series->clear();
-        m_analogSeriesPool.append(series);
-    }
-    else if(m_digitalSeriesMap.contains(id))
-    {
-        series = m_digitalSeriesMap[id];
-        m_digitalSeriesMap.remove(id);
-        series->clear();
-        m_digitalSeriesPool.append(series);
-
-        qreal offset = m_digitalOffsetMap[id];
-        m_digitalOffsetMap.remove(id);
-        m_digitalOffsetPool.append(offset);
-        std::sort(m_digitalOffsetPool.begin(), m_digitalOffsetPool.end());
-    }
-    else
-    {
-        qDebug() << "removeVariable: no registered id " << id;
-    }
 }
 
 

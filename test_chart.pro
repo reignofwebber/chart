@@ -32,7 +32,8 @@ SOURCES += \
     chartpanelview.cpp \
     chartdelegate.cpp \
     chartsettingsdls.cpp \
-    cursoritem.cpp
+    cursoritem.cpp \
+    chartview.cpp
 
 HEADERS += \
     testthread.h \
