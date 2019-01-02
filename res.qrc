@@ -21,5 +21,6 @@
         <file>images/pause.png</file>
         <file>images/play.png</file>
         <file>images/measure.png</file>
+        <file>images/un_measure.png</file>
     </qresource>
 </RCC>

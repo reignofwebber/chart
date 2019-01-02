@@ -456,9 +456,21 @@ void ChartView::addPointComplete()
 void ChartView::showCursor(bool show)
 {
     if(show)
+    {
         m_activeCursor->show();
+        for(CursorItem *item : m_cursors)
+        {
+            item->show();
+        }
+    }
     else
+    {
         m_activeCursor->hide();
+        for(CursorItem *item : m_cursors)
+        {
+            item->hide();
+        }
+    }
 }
 
 int ChartView::getIndex(const QString id, quint64 time) const

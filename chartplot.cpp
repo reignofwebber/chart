@@ -178,37 +178,17 @@ ChartPlot::ChartPlot(QWidget *parent)
     ui->m_dataTypeCombo->setItemDelegate(new QStyledItemDelegate);
     ui->m_dataFileCombo->setItemDelegate(new QStyledItemDelegate);
 
-    // cursor type
-    connect(ui->m_cursorNormalBtn, &QPushButton::clicked, [=](bool checked)
-    {
-        ui->m_cursorNormalBtn->setChecked(checked);
-        if(checked)
-        {
-            emit ui->m_cursorHandBtn->clicked(false);
-            ui->m_view->setRubberBand(QChartView::HorizontalRubberBand);
-        }
-        else
-        {
-            ui->m_view->setRubberBand(QChartView::NoRubberBand);
-        }
-    });
+    QButtonGroup *group = new QButtonGroup(this);
+    group->addButton(ui->m_cursorNormalBtn);
+    group->addButton(ui->m_cursorHandBtn);
+    group->addButton(ui->m_measureBtn);
+
     // default m_cursorNormalBtn is enabled
     ui->m_view->setRubberBand(QChartView::HorizontalRubberBand);
-    connect(ui->m_cursorHandBtn, &QPushButton::clicked, [=](bool checked)
-    {
-        ui->m_cursorHandBtn->setChecked(checked);
-        if(checked)
-        {
-            emit ui->m_cursorNormalBtn->clicked(false);
-            ui->m_view->setCursor(Qt::OpenHandCursor);
-        }
-        else
-        {
-            ui->m_view->setCursor(Qt::ArrowCursor);
-        }
-    });
-    // toggle measure btn
-    connect(ui->m_measureBtn, SIGNAL(clicked(bool)), ui->m_view, SLOT(showCursor(bool)));
+
+    connect(group, SIGNAL(buttonToggled(QAbstractButton*,bool)), this, SLOT(onCursorGroupToggled(QAbstractButton*,bool)));
+
+
     // reset btn clicked
     connect(ui->m_resetBtn, SIGNAL(clicked(bool)), ui->m_view, SLOT(resetAxisX()));
 
@@ -333,6 +313,34 @@ unsigned ChartPlot::getRandomColor() const
     data += (std::rand() % 256) << 8;
     data += (std::rand() % 256);
     return data;
+}
+
+void ChartPlot::onCursorGroupToggled(QAbstractButton *btn,bool checked)
+{
+    if(btn == ui->m_cursorHandBtn)
+    {
+        if(checked)
+        {
+            ui->m_view->setCursor(Qt::OpenHandCursor);
+        }
+        else
+        {
+            ui->m_view->setCursor(Qt::ArrowCursor);
+        }
+    }else if(btn == ui->m_cursorNormalBtn)
+    {
+        if(checked)
+        {
+            ui->m_view->setRubberBand(QChartView::HorizontalRubberBand);
+        }
+        else
+        {
+            ui->m_view->setRubberBand(QChartView::NoRubberBand);
+        }
+    }else if(btn == ui->m_measureBtn)
+    {
+       ui->m_view->showCursor(checked);
+    }
 }
 
 

@@ -20,6 +20,7 @@ using namespace QtCharts;
 class AnalogSeries;
 class DigitalSeries;
 class ChartModel;
+class QAbstractButton;
 
 struct VariateData
 {
@@ -74,6 +75,9 @@ public slots:
     void addVariate();
     void addDigitalVariate();
     void toggleColumnHide(bool checked);
+
+    // group button for cursor
+    void onCursorGroupToggled(QAbstractButton*,bool);
 
 private:
 
