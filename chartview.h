@@ -75,7 +75,8 @@ private:
 
     // graphic items
     QtCharts::QChart *m_chart;
-    CursorItem *m_cursor;
+    CursorItem *m_activeCursor;
+    QVector<QGraphicsItem *> m_cursors;
 
     QValueAxis *m_analogAxisY;
     QValueAxis *m_digitalAxisY;

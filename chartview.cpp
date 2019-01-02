@@ -65,8 +65,8 @@ ChartView::ChartView(QWidget *parent)
 
 
     // cursor item
-    m_cursor = new CursorItem(m_chart);
-    m_cursor->hide();
+    m_activeCursor = new CursorItem(m_chart);
+    m_activeCursor->hide();
 
 
     // init pool
@@ -99,6 +99,13 @@ void ChartView::mousePressEvent(QMouseEvent *event)
         press_x = mapToScene(event->pos()).x();
         setCursor(Qt::ClosedHandCursor);
     }
+
+    if(m_activeCursor->isVisible())
+    {
+        m_cursors.append(m_activeCursor);
+        m_activeCursor = new CursorItem(m_chart);
+    }
+
     QChartView::mousePressEvent(event);
 }
 
@@ -116,7 +123,7 @@ void ChartView::mouseReleaseEvent(QMouseEvent *event)
 void ChartView::mouseMoveEvent(QMouseEvent *event)
 {
     QChartView::mouseMoveEvent(event);
-    m_cursor->setPos(mapToScene(event->pos()).x(), 0);
+    m_activeCursor->setPos(mapToScene(event->pos()).x(), 0);
 
     quint64 time = m_chart->mapToValue(event->pos()).x();
 //    qDebug() << QDateTime::fromMSecsSinceEpoch(time);
@@ -135,7 +142,7 @@ void ChartView::mouseMoveEvent(QMouseEvent *event)
         text.append(QString(": %1\n").arg(interpolateY(itr.key(), index, time)));
     }
 
-    m_cursor->setText(text);
+    m_activeCursor->setText(text);
 }
 
 
@@ -449,9 +456,9 @@ void ChartView::addPointComplete()
 void ChartView::showCursor(bool show)
 {
     if(show)
-        m_cursor->show();
+        m_activeCursor->show();
     else
-        m_cursor->hide();
+        m_activeCursor->hide();
 }
 
 int ChartView::getIndex(const QString id, quint64 time) const

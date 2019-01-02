@@ -634,7 +634,7 @@ QPushButton:checked{
              </size>
             </property>
             <property name="toolTip">
-             <string>抓手</string>
+             <string>标尺</string>
             </property>
             <property name="autoFillBackground">
              <bool>false</bool>
