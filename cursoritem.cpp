@@ -2,6 +2,8 @@
 
 #include <QChart>
 #include <QPainter>
+
+#include <QDebug>
 using namespace QtCharts;
 
 CursorItem::CursorItem(QtCharts::QChart *parent)
@@ -29,7 +31,7 @@ QRectF CursorItem::boundingRect() const
     return rect | m_textRect;
 }
 
-void CursorItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
+void CursorItem::paint(QPainter *painter, const QStyleOptionGraphicsItem */*option*/, QWidget */*widget*/)
 {
     QPen pen;
     pen.setColor(m_color);

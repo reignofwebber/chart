@@ -20,6 +20,9 @@ signals:
     void finished();
     void error(QString err);
 
+    void addPoint(const QString &id, qreal time, qreal val);
+    void addPointComplete();
+
 private:
     ChartPlot *plot;
 

@@ -44,7 +44,7 @@ ChartPlot::ChartPlot(QWidget *parent)
         for(const QModelIndex &index : deselected.indexes())
         {
             QString id = m_model->data(index, Qt::UserRole).toString();
-            ui->m_view->setChartBold(ChartView::DIGITAL_TYPE, id, false);
+            ui->m_view->setChartBold(ChartView::ANALOG_TYPE, id, false);
         }
     });
 
@@ -191,6 +191,10 @@ ChartPlot::ChartPlot(QWidget *parent)
 
     // reset btn clicked
     connect(ui->m_resetBtn, SIGNAL(clicked(bool)), ui->m_view, SLOT(resetAxisX()));
+    // unmeasure btn clicked
+    connect(ui->m_unmeasureBtn, SIGNAL(clicked()), ui->m_view, SLOT(popCursor()));
+    // showminmax btn clicked
+    connect(ui->m_showMinMaxBtn, SIGNAL(clicked(bool)), ui->m_view, SLOT(showMinMax(bool)));
 
     //////////////////////////////////////////////////////////////////////////////
     QThread *thread = new QThread;
@@ -322,6 +326,8 @@ void ChartPlot::onCursorGroupToggled(QAbstractButton *btn,bool checked)
         if(checked)
         {
             ui->m_view->setCursor(Qt::OpenHandCursor);
+            // show all cursors;
+            ui->m_view->showCursors(true);
         }
         else
         {
@@ -332,6 +338,8 @@ void ChartPlot::onCursorGroupToggled(QAbstractButton *btn,bool checked)
         if(checked)
         {
             ui->m_view->setRubberBand(QChartView::HorizontalRubberBand);
+            // show all cursors;
+            ui->m_view->showCursors(true);
         }
         else
         {
@@ -339,7 +347,9 @@ void ChartPlot::onCursorGroupToggled(QAbstractButton *btn,bool checked)
         }
     }else if(btn == ui->m_measureBtn)
     {
-       ui->m_view->showCursor(checked);
+       ui->m_view->showActiveCursor(checked);
+       ui->m_view->showCursors(true);
+
     }
 }
 

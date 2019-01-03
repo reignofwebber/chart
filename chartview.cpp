@@ -103,6 +103,7 @@ void ChartView::mousePressEvent(QMouseEvent *event)
     if(m_activeCursor->isVisible())
     {
         m_cursors.append(m_activeCursor);
+        m_cursorMap[m_chart->mapToValue(event->pos()).x()] = m_activeCursor;
         m_activeCursor = new CursorItem(m_chart);
     }
 
@@ -113,20 +114,25 @@ void ChartView::mouseReleaseEvent(QMouseEvent *event)
 {
     if(rubberBand() == QChartView::NoRubberBand && cursor().shape() == Qt::ClosedHandCursor)
     {
-        qreal distance = press_x - mapToScene(event->pos()).x();
+        qreal distance = press_x - event->pos().x();
         this->chart()->scroll(distance, 0);
         setCursor(Qt::OpenHandCursor);
     }
+
+    // let parent do scaling
     QChartView::mouseReleaseEvent(event);
+
+    // finally update cursor's position
+    updateCursorsPos();
+    updateMinMaxPos();
 }
 
 void ChartView::mouseMoveEvent(QMouseEvent *event)
 {
     QChartView::mouseMoveEvent(event);
-    m_activeCursor->setPos(mapToScene(event->pos()).x(), 0);
+    m_activeCursor->setPos(event->pos().x(), 0);
 
     quint64 time = m_chart->mapToValue(event->pos()).x();
-//    qDebug() << QDateTime::fromMSecsSinceEpoch(time);
 
     QString text = QString("\n时间: ");
     text.append(QDateTime::fromMSecsSinceEpoch(time).toString("yyyy.MM.dd-hh:mm:ss.zzz\n\n"));
@@ -137,7 +143,6 @@ void ChartView::mouseMoveEvent(QMouseEvent *event)
         if(!series->isVisible()) continue;
         int index = getIndex(itr.key(), time);
         if(index == -1) continue;
-        qDebug() << index << ", point is " << series->at(index);
         text.append(m_id_name_map[itr.key()]);
         text.append(QString(": %1\n").arg(interpolateY(itr.key(), index, time)));
     }
@@ -181,6 +186,7 @@ void ChartView::setChartHalf()
 {
     m_analogAxisY->setRange(-m_analogAxisY->max(), m_analogAxisY->max());
     m_digitalAxisY->setRange(0, m_digitalMaxY);
+    updateMinMaxPos();
 }
 
 void ChartView::setChartFull(ChartType type)
@@ -188,6 +194,7 @@ void ChartView::setChartFull(ChartType type)
     if(type == ANALOG_TYPE)
     {
         m_analogAxisY->setRange(0, m_analogAxisY->max());
+        updateMinMaxPos();
     }
     else if(type == DIGITAL_TYPE)
     {
@@ -204,10 +211,7 @@ void ChartView::setChartShow(ChartType type, bool show)
     {
         for(auto itr = m_analogSeriesMap.begin(); itr != m_analogSeriesMap.end(); ++itr)
         {
-            if(show)
-                itr.value()->show();
-            else
-                itr.value()->hide();
+            onShowChanged(itr.key(), show);
         }
 
     }
@@ -244,6 +248,38 @@ void ChartView::addVariable(ChartType type, const QString &id, const QString &na
 
         // id name map
         m_id_name_map[id] = name;
+
+        // set series width and color
+        QPen pen;
+        pen.setWidth(2);
+        pen.setColor(QColor(color));
+        series->setPen(pen);
+
+        // new min max
+        // max
+        QGraphicsEllipseItem *max_point = scene()->addEllipse(-7.5, -7.5, 15, 15, pen, QColor(color));
+        // min
+        QPolygonF Triangle;
+        Triangle.append(QPointF(-7.5, 4.33));
+        Triangle.append(QPointF(0, -8.66));
+        Triangle.append(QPointF(7.5, 4.33));
+        Triangle.append(QPointF(-7.5, 4.33));
+        QGraphicsPolygonItem *min_point = scene()->addPolygon(Triangle, pen, QColor(color));
+
+        // set max_point very high y value
+        max_point->setPos(0, 1000000);
+        // set min_point very low y value
+        min_point->setPos(0, -1000000);
+
+        if(!m_showMinMaxOnCreate)
+        {
+            max_point->hide();
+            min_point->hide();
+        }
+
+        // add to map
+        m_minMaxMap[id] = std::make_tuple(min_point, max_point, 0, 0);
+        m_showMinMax[id] = m_showMinMaxOnCreate;
     }
     else if(type == DIGITAL_TYPE)
     {
@@ -263,16 +299,17 @@ void ChartView::addVariable(ChartType type, const QString &id, const QString &na
         // id name map
         m_id_name_map[id] = name;
 
+        QPen pen;
+        pen.setWidth(2);
+        pen.setColor(QColor(color));
+        series->setPen(pen);
     }
     else
     {
         qDebug() << "addVariable -> unsupport type " << type;
     }
 
-    QPen pen;
-    pen.setWidth(2);
-    pen.setColor(QColor(color));
-    series->setPen(pen);
+
 }
 
 void ChartView::removeVariable(ChartType type, const QString &id)
@@ -290,6 +327,19 @@ void ChartView::removeVariable(ChartType type, const QString &id)
 
             // id name map
             m_id_name_map.remove(id);
+
+            // min max map
+            if(m_minMaxMap.contains(id))
+            {
+                auto min_max = m_minMaxMap[id];
+                delete std::get<0>(min_max);
+                delete std::get<1>(min_max);
+                m_minMaxMap.remove(id);
+            }
+            else
+            {
+                qDebug() << "m_minMaxMap not contains " << id;
+            }
         }else
         {
             qDebug() << "removeVariable -> no registered id " << id;
@@ -328,6 +378,7 @@ void ChartView::onShowChanged(const QString &id, bool show)
     {
         if(show) m_analogSeriesMap[id]->show();
         else m_analogSeriesMap[id]->hide();
+        showMinMax(id, show);
     }
     else if(m_digitalSeriesMap.contains(id))
     {
@@ -345,6 +396,22 @@ void ChartView::onColorChanged(const QString &id, unsigned color)
     if(m_analogSeriesMap.contains(id))
     {
         m_analogSeriesMap[id]->setColor(QColor(color));
+        if(m_minMaxMap.contains(id))
+        {
+            QPen pen;
+            pen.setWidth(2);
+            pen.setColor(QColor(color));
+            // change min triangle color
+            std::get<0>(m_minMaxMap[id])->setPen(pen);
+            std::get<0>(m_minMaxMap[id])->setBrush(QColor(color));
+            // change max circle color
+            std::get<1>(m_minMaxMap[id])->setPen(pen);
+            std::get<1>(m_minMaxMap[id])->setBrush(QColor(color));
+        }
+        else
+        {
+            qDebug() << "minMaxMap not contain " << id;
+        }
     }
     else if(m_digitalSeriesMap.contains(id))
     {
@@ -360,6 +427,7 @@ void ChartView::resetAxisX()
 {
     QDateTime now = QDateTime::currentDateTime();
     m_chart->axisX()->setRange(now, now.addSecs(m_totoalSeconds));
+    updateCursorsPos();
 }
 
 void ChartView::addPoint(QString id, qreal time, qreal val)
@@ -376,6 +444,9 @@ void ChartView::addPoint(QString id, qreal time, qreal val)
         }
 
         m_analogSeriesMap[id]->append(time, val);
+
+        // update min max value
+        changeMinMaxPos(id);
 
         // update panel
         emit setValue(id, val);
@@ -433,6 +504,8 @@ void ChartView::addPointComplete()
             if(totalSeconds < 1) totalSeconds = 1;
             qreal pertick = m_chart->plotArea().width()/totalSeconds;
             m_chart->scroll(pertick, 0);
+            updateCursorsPos();
+            updateMinMaxPos();
             return;
         }
     }
@@ -453,22 +526,32 @@ void ChartView::addPointComplete()
     }
 }
 
-void ChartView::showCursor(bool show)
+void ChartView::showActiveCursor(bool show)
 {
     if(show)
     {
         m_activeCursor->show();
-        for(CursorItem *item : m_cursors)
-        {
-            item->show();
-        }
     }
     else
     {
         m_activeCursor->hide();
-        for(CursorItem *item : m_cursors)
+    }
+}
+
+void ChartView::showCursors(bool show)
+{
+    if(show)
+    {
+        for(auto itr = m_cursorMap.begin(); itr != m_cursorMap.end(); ++itr)
         {
-            item->hide();
+            itr.value()->show();
+        }
+    }
+    else
+    {
+        for(auto itr = m_cursorMap.begin(); itr != m_cursorMap.end(); ++itr)
+        {
+            itr.value()->hide();
         }
     }
 }
@@ -547,4 +630,131 @@ qreal ChartView::interpolateY(const QString id, int index, quint64 time) const
     // discard presicion
     if(end_time - start_time < 0.01) return start_val;
     return start_val + (time - start_time) * (end_val - start_val) / (end_time - start_time);
+}
+
+void ChartView::popCursor()
+{
+    if(m_cursors.empty()) return;
+    CursorItem *item = m_cursors.back();
+    m_cursors.pop_back();
+
+
+    quint64 time = m_cursorMap.key(item);
+    if(m_cursorMap.contains(time))
+    {
+        m_cursorMap.remove(time);
+    }
+    else
+    {
+        qDebug() << "m_cursorMap not contain time " << time;
+    }
+
+    delete item;
+}
+
+void ChartView::updateCursorsPos()
+{
+    for(auto itr = m_cursorMap.begin(); itr != m_cursorMap.end(); ++itr)
+    {
+        itr.value()->setPos(m_chart->mapToPosition(QPointF(itr.key(), 0)).x(), 0);
+    }
+}
+
+void ChartView::updateMinMaxPos()
+{
+    for(auto itr = m_minMaxMap.begin(); itr != m_minMaxMap.end(); ++itr)
+    {
+        if(m_analogSeriesMap.contains(itr.key()))
+        {
+            // if hide not update
+            if(!m_showMinMax[itr.key()]) continue;
+
+            auto &min_max_point = itr.value();
+            int min_index = getIndex(itr.key(), std::get<2>(min_max_point));
+            int max_index = getIndex(itr.key(), std::get<3>(min_max_point));
+            if(min_index < 0 || max_index < 0) continue;
+
+            QPointF min_value = m_analogSeriesMap[itr.key()]->at(min_index);
+            QPointF max_value = m_analogSeriesMap[itr.key()]->at(max_index);
+
+            std::get<0>(min_max_point)->setPos(m_chart->mapToPosition(min_value));
+            std::get<1>(min_max_point)->setPos(m_chart->mapToPosition(max_value));
+
+        }
+        else
+        {
+            qDebug() << "updateMinMaxPos : can not find " << itr.key() << " in analogMap";
+        }
+    }
+}
+
+void ChartView::changeMinMaxPos(const QString &id)
+{
+    if(m_analogSeriesMap.contains(id))
+    {
+        QLineSeries *series = m_analogSeriesMap[id];
+        if(series->count() < 1)
+        {
+            qDebug() << "series count < 1";
+            return;
+        }
+
+        QPointF lastValue = series->at(series->count() - 1);
+
+        auto &min_max_point = m_minMaxMap[id];
+
+        int min_index = getIndex(id, std::get<2>(min_max_point));
+        int max_index = getIndex(id, std::get<3>(min_max_point));
+
+        bool change = false;
+        // min y
+        if(series->at(min_index).y() > lastValue.y())
+        {
+            std::get<2>(min_max_point) = lastValue.x();
+            change = true;
+        }
+        // max y
+        if(series->at(max_index).y() < lastValue.y())
+        {
+            std::get<3>(min_max_point) = lastValue.x();
+            change = true;
+        }
+
+        if(change)
+            updateMinMaxPos();
+    }
+    else
+    {
+        qDebug() << "updateMinMaxPos : can not find " << id << " in analogMap";
+    }
+}
+
+void ChartView::showMinMax(const QString &id, bool show)
+{
+    if(m_minMaxMap.contains(id))
+    {
+        m_showMinMax[id] = show;
+        if(show)
+        {
+            std::get<0>(m_minMaxMap[id])->show();
+            std::get<1>(m_minMaxMap[id])->show();
+        }else
+        {
+            std::get<0>(m_minMaxMap[id])->hide();
+            std::get<1>(m_minMaxMap[id])->hide();
+        }
+
+    }else
+    {
+        qDebug() << "showMinMax not contains" << id;
+    }
+}
+
+void ChartView::showMinMax(bool show)
+{
+    m_showMinMaxOnCreate = show;
+    for(auto itr = m_minMaxMap.begin(); itr != m_minMaxMap.end(); ++itr)
+    {
+        showMinMax(itr.key(), show);
+    }
 }

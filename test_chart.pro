@@ -53,4 +53,4 @@ FORMS += \
     chartsettingsdlg.ui
 
 RESOURCES += \
-    res.qrc
+    chart.qrc

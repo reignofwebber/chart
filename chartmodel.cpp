@@ -10,12 +10,12 @@ ChartModel::ChartModel(QObject *parent)
 
 }
 
-int ChartModel::rowCount(const QModelIndex &parent) const
+int ChartModel::rowCount(const QModelIndex &/*parent*/) const
 {
     return m_data.size();
 }
 
-int ChartModel::columnCount(const QModelIndex &parent) const
+int ChartModel::columnCount(const QModelIndex &/*parent*/) const
 {
     return 5;
 }

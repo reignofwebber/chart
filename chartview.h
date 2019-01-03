@@ -4,6 +4,7 @@
 #include <QChartView>
 
 #include <QDebug>
+#include <tuple>
 
 namespace QtCharts {
     class QChart;
@@ -56,7 +57,15 @@ public slots:
     void onShowChanged(const QString &id, bool show);
     void onColorChanged(const QString &id, unsigned color);
     void resetAxisX();
-    void showCursor(bool show);
+    // show active cursor
+    void showActiveCursor(bool show);
+    // show cursors
+    void showCursors(bool show);
+    // delete last cursor from m_cursors
+    void popCursor();
+
+    // if show min max point
+    void showMinMax(bool show);
 
 
 protected:
@@ -69,14 +78,36 @@ private:
     int getIndex(const QString id, quint64 time) const;
     qreal interpolateY(const QString id, int index, quint64 time) const;
 
+    // update cursors position
+    void updateCursorsPos();
+    // change or no change to min and max point
+    void changeMinMaxPos(const QString &id);
+    // update min max point position
+    void updateMinMaxPos();
+
+    // show min max
+    void showMinMax(const QString &id, bool show);
+
 
 private:
     qreal press_x;      // 记录press点的x值
 
     // graphic items
     QtCharts::QChart *m_chart;
+
+
+    // just for analog
+    //1. cursors
     CursorItem *m_activeCursor;
+    QMap<quint64, CursorItem *> m_cursorMap;
+    // aux for popCursor
     QVector<CursorItem *> m_cursors;
+
+    //2. min max id --> <min, max, min(x), max(x)>
+    QMap<QString, std::tuple<QGraphicsPolygonItem *, QGraphicsEllipseItem *, quint64, quint64>> m_minMaxMap;
+    // optimize only show updateMinMaxPos
+    QMap<QString, bool> m_showMinMax;
+    bool m_showMinMaxOnCreate = false;
 
     QValueAxis *m_analogAxisY;
     QValueAxis *m_digitalAxisY;

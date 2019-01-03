@@ -61,10 +61,7 @@ public:
 
     // 添加变量
     void addVariable(const ChartData &data);
-    // 为变量ID加点
-    void addPoint(QString id, qreal time, qreal val);
-    // 所有变量加点完成
-    void addPointComplete();
+
 
 signals:
     void setValue(QString id, qreal value);
@@ -78,6 +75,11 @@ public slots:
 
     // group button for cursor
     void onCursorGroupToggled(QAbstractButton*,bool);
+
+    // 为变量ID加点
+    void addPoint(QString id, qreal time, qreal val);
+    // 所有变量加点完成
+    void addPointComplete();
 
 private:
 

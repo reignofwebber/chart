@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1594</width>
+    <width>1824</width>
     <height>733</height>
    </rect>
   </property>
@@ -176,7 +176,7 @@ QPushButton:pressed{
              <string/>
             </property>
             <property name="icon">
-             <iconset resource="res.qrc">
+             <iconset resource="chart.qrc">
               <normaloff>:/images/add.png</normaloff>:/images/add.png</iconset>
             </property>
            </widget>
@@ -221,8 +221,8 @@ QPushButton:pressed{
              <string/>
             </property>
             <property name="icon">
-             <iconset resource="res.qrc">
-              <normaloff>:/images/delete.png</normaloff>:/images/delete.png</iconset>
+             <iconset resource="chart.qrc">
+              <normaloff>:/images/remove.png</normaloff>:/images/remove.png</iconset>
             </property>
            </widget>
           </item>
@@ -550,7 +550,7 @@ QPushButton:checked{
              <string/>
             </property>
             <property name="icon">
-             <iconset resource="res.qrc">
+             <iconset resource="chart.qrc">
               <normaloff>:/images/cursor.png</normaloff>:/images/cursor.png</iconset>
             </property>
             <property name="checkable">
@@ -605,7 +605,7 @@ QPushButton:checked{
              <string/>
             </property>
             <property name="icon">
-             <iconset resource="res.qrc">
+             <iconset resource="chart.qrc">
               <normaloff>:/images/hand.png</normaloff>:/images/hand.png</iconset>
             </property>
             <property name="checkable">
@@ -634,7 +634,7 @@ QPushButton:checked{
              </size>
             </property>
             <property name="toolTip">
-             <string>标尺</string>
+             <string>显示游标</string>
             </property>
             <property name="autoFillBackground">
              <bool>false</bool>
@@ -657,11 +657,66 @@ QPushButton:checked{
              <string/>
             </property>
             <property name="icon">
-             <iconset resource="res.qrc">
+             <iconset resource="chart.qrc">
               <normaloff>:/images/measure.png</normaloff>:/images/measure.png</iconset>
             </property>
             <property name="checkable">
              <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="3">
+           <widget class="QPushButton" name="m_showMinMaxBtn">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>32</width>
+              <height>32</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>32</width>
+              <height>32</height>
+             </size>
+            </property>
+            <property name="toolTip">
+             <string>标记最值</string>
+            </property>
+            <property name="autoFillBackground">
+             <bool>false</bool>
+            </property>
+            <property name="styleSheet">
+             <string notr="true">QPushButton{
+	border: 2px solid rgb(109, 122, 224);
+	border-style: outset;
+	border-radius:5px;
+}
+
+QPushButton:checked{
+	border: 1px groove gray;
+	border-style: inset;
+	margin-top: 1px;
+	margin-left: 1px;
+}</string>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+            <property name="icon">
+             <iconset resource="chart.qrc">
+              <normaloff>:/images/circle.png</normaloff>:/images/circle.png</iconset>
+            </property>
+            <property name="checkable">
+             <bool>true</bool>
+            </property>
+            <property name="checked">
+             <bool>false</bool>
             </property>
            </widget>
           </item>
@@ -709,7 +764,7 @@ QPushButton:checked{
              <string/>
             </property>
             <property name="icon">
-             <iconset resource="res.qrc">
+             <iconset resource="chart.qrc">
               <normaloff>:/images/pause.png</normaloff>:/images/pause.png</iconset>
             </property>
             <property name="checkable">
@@ -764,7 +819,7 @@ QPushButton:pressed{
              <string/>
             </property>
             <property name="icon">
-             <iconset resource="res.qrc">
+             <iconset resource="chart.qrc">
               <normaloff>:/images/reset.png</normaloff>:/images/reset.png</iconset>
             </property>
             <property name="checkable">
@@ -776,7 +831,7 @@ QPushButton:pressed{
            </widget>
           </item>
           <item row="1" column="2">
-           <widget class="QPushButton" name="m_resetBtn_2">
+           <widget class="QPushButton" name="m_unmeasureBtn">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
               <horstretch>0</horstretch>
@@ -796,7 +851,7 @@ QPushButton:pressed{
              </size>
             </property>
             <property name="toolTip">
-             <string>重置</string>
+             <string>删除游标</string>
             </property>
             <property name="autoFillBackground">
              <bool>false</bool>
@@ -819,7 +874,7 @@ QPushButton:pressed{
              <string/>
             </property>
             <property name="icon">
-             <iconset resource="res.qrc">
+             <iconset resource="chart.qrc">
               <normaloff>:/images/un_measure.png</normaloff>:/images/un_measure.png</iconset>
             </property>
             <property name="checkable">
@@ -887,7 +942,7 @@ QPushButton:pressed{
              <string/>
             </property>
             <property name="icon">
-             <iconset resource="res.qrc">
+             <iconset resource="chart.qrc">
               <normaloff>:/images/settings.png</normaloff>:/images/settings.png</iconset>
             </property>
             <property name="checkable">
@@ -1080,7 +1135,7 @@ QPushButton:pressed{
              <string/>
             </property>
             <property name="icon">
-             <iconset resource="res.qrc">
+             <iconset resource="chart.qrc">
               <normaloff>:/images/add.png</normaloff>:/images/add.png</iconset>
             </property>
            </widget>
@@ -1125,7 +1180,7 @@ QPushButton:pressed{
              <string/>
             </property>
             <property name="icon">
-             <iconset resource="res.qrc">
+             <iconset>
               <normaloff>:/images/delete.png</normaloff>:/images/delete.png</iconset>
             </property>
            </widget>
@@ -1198,7 +1253,7 @@ QHeaderView::section:last{
   </customwidget>
  </customwidgets>
  <resources>
-  <include location="res.qrc"/>
+  <include location="chart.qrc"/>
  </resources>
  <connections/>
 </ui>
