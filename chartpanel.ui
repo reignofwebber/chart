@@ -1180,8 +1180,8 @@ QPushButton:pressed{
              <string/>
             </property>
             <property name="icon">
-             <iconset>
-              <normaloff>:/images/delete.png</normaloff>:/images/delete.png</iconset>
+             <iconset resource="chart.qrc">
+              <normaloff>:/images/remove.png</normaloff>:/images/remove.png</iconset>
             </property>
            </widget>
           </item>

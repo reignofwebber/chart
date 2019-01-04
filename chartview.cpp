@@ -152,7 +152,7 @@ void ChartView::mouseMoveEvent(QMouseEvent *event)
 
 
 //
-void ChartView::setChartBold(ChartType type, const QString &id, bool bold)
+void ChartView::setChartBold(Chart_Type type, const QString &id, bool bold)
 {
     if(type == ANALOG_TYPE)
     {
@@ -189,7 +189,7 @@ void ChartView::setChartHalf()
     updateMinMaxPos();
 }
 
-void ChartView::setChartFull(ChartType type)
+void ChartView::setChartFull(Chart_Type type)
 {
     if(type == ANALOG_TYPE)
     {
@@ -205,7 +205,7 @@ void ChartView::setChartFull(ChartType type)
         qDebug() << "setChartFull -> unsupport type " << type;
     }
 }
-void ChartView::setChartShow(ChartType type, bool show)
+void ChartView::setChartShow(Chart_Type type, bool show)
 {
     if(type == ANALOG_TYPE)
     {
@@ -232,7 +232,7 @@ void ChartView::setChartShow(ChartType type, bool show)
     }
 }
 
-void ChartView::addVariable(ChartType type, const QString &id, const QString &name, unsigned color)
+void ChartView::addVariable(Chart_Type type, const QString &id, const QString &name, unsigned color)
 {
     QLineSeries *series;
     if(type == ANALOG_TYPE)
@@ -240,6 +240,11 @@ void ChartView::addVariable(ChartType type, const QString &id, const QString &na
         if(m_analogSeriesPool.empty())
         {
             qDebug() << "m_digitalSeriesPool is empty";
+            return;
+        }
+        if(m_analogSeriesMap.contains(id))
+        {
+            qDebug() << "variable has already in chart";
             return;
         }
         series = m_analogSeriesPool.back();
@@ -288,6 +293,12 @@ void ChartView::addVariable(ChartType type, const QString &id, const QString &na
             qDebug() << "m_digitalSeriesPool is empty";
             return;
         }
+
+        if(m_digitalSeriesMap.contains(id))
+        {
+            qDebug() << "variable has already in chart";
+            return;
+        }
         series = m_digitalSeriesPool.back();
         m_digitalSeriesPool.pop_back();
         m_digitalSeriesMap[id] = series;
@@ -312,63 +323,51 @@ void ChartView::addVariable(ChartType type, const QString &id, const QString &na
 
 }
 
-void ChartView::removeVariable(ChartType type, const QString &id)
+void ChartView::removeVariable(const QString &id)
 {
     QLineSeries *series;
 
-    if(type == ANALOG_TYPE)
+    if(m_analogSeriesMap.contains(id))
     {
-        if(m_analogSeriesMap.contains(id))
-        {
-            series = m_analogSeriesMap[id];
-            m_analogSeriesMap.remove(id);
-            series->clear();
-            m_analogSeriesPool.append(series);
+        series = m_analogSeriesMap[id];
+        m_analogSeriesMap.remove(id);
+        series->clear();
+        m_analogSeriesPool.append(series);
 
-            // id name map
-            m_id_name_map.remove(id);
+        // id name map
+        m_id_name_map.remove(id);
 
-            // min max map
-            if(m_minMaxMap.contains(id))
-            {
-                auto min_max = m_minMaxMap[id];
-                delete std::get<0>(min_max);
-                delete std::get<1>(min_max);
-                m_minMaxMap.remove(id);
-            }
-            else
-            {
-                qDebug() << "m_minMaxMap not contains " << id;
-            }
-        }else
+        // min max map
+        if(m_minMaxMap.contains(id))
         {
-            qDebug() << "removeVariable -> no registered id " << id;
+            auto min_max = m_minMaxMap[id];
+            delete std::get<0>(min_max);
+            delete std::get<1>(min_max);
+            m_minMaxMap.remove(id);
+        }
+        else
+        {
+            qDebug() << "m_minMaxMap not contains " << id;
         }
     }
-    else if(type == DIGITAL_TYPE)
+    else if(m_digitalSeriesMap.contains(id))
     {
-        if(m_digitalSeriesMap.contains(id))
-        {
-            series = m_digitalSeriesMap[id];
-            m_digitalSeriesMap.remove(id);
-            series->clear();
-            m_digitalSeriesPool.append(series);
+        series = m_digitalSeriesMap[id];
+        m_digitalSeriesMap.remove(id);
+        series->clear();
+        m_digitalSeriesPool.append(series);
 
-            qreal offset = m_digitalOffsetMap[id];
-            m_digitalOffsetMap.remove(id);
-            m_digitalOffsetPool.append(offset);
-            std::sort(m_digitalOffsetPool.begin(), m_digitalOffsetPool.end());
+        qreal offset = m_digitalOffsetMap[id];
+        m_digitalOffsetMap.remove(id);
+        m_digitalOffsetPool.append(offset);
+        std::sort(m_digitalOffsetPool.begin(), m_digitalOffsetPool.end());
 
-            // id name map
-            m_id_name_map.remove(id);
-        }else
-        {
-            qDebug() << "removeVariable -> no registered id " << id;
-        }
+        // id name map
+        m_id_name_map.remove(id);
     }
     else
     {
-        qDebug() << "removeVariable -> unsupport type " << type;
+        qDebug() << "removeVariable -> no registered id " << id;
     }
 }
 

@@ -5,6 +5,8 @@
 #include <QVector>
 #include <QMap>
 
+#include "analyze_types.h"
+
 namespace Ui {
 class ChartPanel;
 }
@@ -22,34 +24,9 @@ class DigitalSeries;
 class ChartModel;
 class QAbstractButton;
 
-struct VariateData
-{
-    VariateData():package(-1){}
-    QString id;
-    int package;
-    int wordOffset;
-    int bitOffset;
-    int length;
-    float dimension;
-    float ratio;
-    // 只是对于温度
-    float valueOffset;
-    QString unite;
-    QString variateName;
-};
-
-struct ChartData
-{
-    QString id;         // from VariateData
-    QString name;       // from VariateData'
-    int length;         // from VariateData
-    float value = 0;    // value
-    unsigned color;     // color
-    bool show;          // if show in chart
-    bool star;          // if save for next open
-};
 
 class ChartPanelView;
+class ConfigureDialog;
 
 class ChartPlot : public QWidget
 {
@@ -69,8 +46,8 @@ signals:
 
 public slots:
     // 添加变量
-    void addVariate();
-    void addDigitalVariate();
+    void openConfigureDlg();
+    void addVariateData(const VariateData& data, bool add);
     void toggleColumnHide(bool checked);
 
     // group button for cursor
@@ -94,6 +71,7 @@ private:
     ChartModel *m_model;        // analog model
     ChartModel *m_model_d;      // digital model
 
+    ConfigureDialog *m_configDlg;
 };
 
 #endif // CHARTPLOT_H

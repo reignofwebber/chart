@@ -10,11 +10,13 @@
 #include <QStandardItemModel>
 
 #include "chartview.h"
+#include "configuredialog.h"
 
 
 ChartPlot::ChartPlot(QWidget *parent)
     :QWidget(parent)
     , ui(new Ui::ChartPanel)
+    , m_configDlg(0)
 {
     ui->setupUi(this);
 
@@ -39,12 +41,12 @@ ChartPlot::ChartPlot(QWidget *parent)
         for(const QModelIndex &index : selected.indexes())
         {
             QString id = m_model->data(index, Qt::UserRole).toString();
-            ui->m_view->setChartBold(ChartView::ANALOG_TYPE, id, true);
+            ui->m_view->setChartBold(ANALOG_TYPE, id, true);
         }
         for(const QModelIndex &index : deselected.indexes())
         {
             QString id = m_model->data(index, Qt::UserRole).toString();
-            ui->m_view->setChartBold(ChartView::ANALOG_TYPE, id, false);
+            ui->m_view->setChartBold(ANALOG_TYPE, id, false);
         }
     });
 
@@ -57,20 +59,20 @@ ChartPlot::ChartPlot(QWidget *parent)
             if(ui->m_enableDigitalBtn->isChecked())
                 ui->m_view->setChartHalf();
             else
-                ui->m_view->setChartFull(ChartView::ANALOG_TYPE);
+                ui->m_view->setChartFull(ANALOG_TYPE);
 
-            ui->m_view->setChartShow(ChartView::ANALOG_TYPE, true);
+            ui->m_view->setChartShow(ANALOG_TYPE, true);
         }
         else
         {
             if(ui->m_enableDigitalBtn->isChecked())
-                ui->m_view->setChartFull(ChartView::DIGITAL_TYPE);
+                ui->m_view->setChartFull(DIGITAL_TYPE);
 
-            ui->m_view->setChartShow(ChartView::ANALOG_TYPE, false);
+            ui->m_view->setChartShow(ANALOG_TYPE, false);
         }
     });
     connect(ui->m_editBtn, SIGNAL(clicked(bool)), this, SLOT(toggleColumnHide(bool)));
-    connect(ui->m_addBtn, SIGNAL(clicked()), this, SLOT(addVariate()));
+    connect(ui->m_addBtn, SIGNAL(clicked()), this, SLOT(openConfigureDlg()));
     connect(ui->m_removeBtn, &QPushButton::clicked, [=](){
         QItemSelectionModel *selModel = ui->m_analogPanelView->selectionModel();
 
@@ -83,8 +85,10 @@ ChartPlot::ChartPlot(QWidget *parent)
         for(int i = list.size() - 1; i >=0; --i)
         {
             QString id = m_model->data(list.at(i), Qt::UserRole).toString();
-            ui->m_view->removeVariable(ChartView::ANALOG_TYPE, id);
+            ui->m_view->removeVariable(id);
             m_model->removeRow(list.at(i).row(), QModelIndex());
+            // update configuredialog
+            if(m_configDlg) m_configDlg->setReadyVariates(ui->m_view->getAllVariableIds());
         }
     });
 
@@ -107,12 +111,12 @@ ChartPlot::ChartPlot(QWidget *parent)
         for(const QModelIndex &index : selected.indexes())
         {
             QString id = m_model_d->data(index, Qt::UserRole).toString();
-            ui->m_view->setChartBold(ChartView::DIGITAL_TYPE, id, true);
+            ui->m_view->setChartBold(DIGITAL_TYPE, id, true);
         }
         for(const QModelIndex &index : deselected.indexes())
         {
             QString id = m_model_d->data(index, Qt::UserRole).toString();
-            ui->m_view->setChartBold(ChartView::DIGITAL_TYPE, id, false);
+            ui->m_view->setChartBold(DIGITAL_TYPE, id, false);
         }
     });
 
@@ -124,20 +128,20 @@ ChartPlot::ChartPlot(QWidget *parent)
             if(ui->m_enableAnalogBtn->isChecked())
                 ui->m_view->setChartHalf();
             else
-                ui->m_view->setChartFull(ChartView::DIGITAL_TYPE);
+                ui->m_view->setChartFull(DIGITAL_TYPE);
 
-            ui->m_view->setChartShow(ChartView::DIGITAL_TYPE, true);
+            ui->m_view->setChartShow(DIGITAL_TYPE, true);
         }
         else
         {
             if(ui->m_enableAnalogBtn->isChecked())
-                ui->m_view->setChartFull(ChartView::ANALOG_TYPE);
+                ui->m_view->setChartFull(ANALOG_TYPE);
 
-            ui->m_view->setChartShow(ChartView::DIGITAL_TYPE, false);
+            ui->m_view->setChartShow(DIGITAL_TYPE, false);
         }
     });
     connect(ui->m_editBtn_d, SIGNAL(clicked(bool)), this, SLOT(toggleColumnHide(bool)));
-    connect(ui->m_addBtn_d, SIGNAL(clicked()), this, SLOT(addDigitalVariate()));
+    connect(ui->m_addBtn_d, SIGNAL(clicked()), this, SLOT(openConfigureDlg()));
     connect(ui->m_removeBtn_d, &QPushButton::clicked, [=](){
         QItemSelectionModel *selModel = ui->m_digitalPanelView->selectionModel();
 
@@ -150,8 +154,10 @@ ChartPlot::ChartPlot(QWidget *parent)
         for(int i = list.size() - 1; i >=0; --i)
         {
             QString id = m_model_d->data(list.at(i), Qt::UserRole).toString();
-            ui->m_view->removeVariable(ChartView::DIGITAL_TYPE, id);
+            ui->m_view->removeVariable(id);
             m_model_d->removeRow(list.at(i).row(), QModelIndex());
+            // update configuredialog
+            if(m_configDlg) m_configDlg->setReadyVariates(ui->m_view->getAllVariableIds());
         }
     });
     connect(ui->m_playBtn, &QPushButton::clicked, [=](bool checked)
@@ -196,6 +202,7 @@ ChartPlot::ChartPlot(QWidget *parent)
     // showminmax btn clicked
     connect(ui->m_showMinMaxBtn, SIGNAL(clicked(bool)), ui->m_view, SLOT(showMinMax(bool)));
 
+
     //////////////////////////////////////////////////////////////////////////////
     QThread *thread = new QThread;
     Test *test = new Test(this);
@@ -211,6 +218,7 @@ ChartPlot::ChartPlot(QWidget *parent)
 ChartPlot::~ChartPlot()
 {
     delete ui;
+    delete m_configDlg;
 }
 
 void ChartPlot::addVariable(const ChartData &data)
@@ -219,16 +227,16 @@ void ChartPlot::addVariable(const ChartData &data)
     if(data.length == 1)
     {
         // add to chart
-        ui->m_view->addVariable(ChartView::DIGITAL_TYPE, data.id, data.name, data.color);
+        ui->m_view->addVariable(DIGITAL_TYPE, data.id, data.name, data.color);
         // add to panel
-        m_model_d->addVariate(data);
+        m_model_d->addVariateData(data);
     }
     else
     {
         // add to chart
-        ui->m_view->addVariable(ChartView::ANALOG_TYPE, data.id, data.name, data.color);
+        ui->m_view->addVariable(ANALOG_TYPE, data.id, data.name, data.color);
         // add to panel
-        m_model->addVariate(data);
+        m_model->addVariateData(data);
     }
 }
 
@@ -270,45 +278,60 @@ void ChartPlot::toggleColumnHide(bool checked)
     }
 }
 
-void ChartPlot::addVariate()
+void ChartPlot::openConfigureDlg()
 {
-    static int id = 0;
-    VariateData data;
-    data.id = QString::number(id);
-    data.variateName = QString("列车速度%1").arg(id);
-    data.length = 8;
+    Configure_Type configureType;
+    if(ui->m_dataTypeCombo->currentText() == 0 || ui->m_dataTypeCombo->currentIndex() == 1)
+    {
+        configureType = REALDATA_Configure;
+    }else
+    {
+        configureType = ERMDATA_Configure;
+    }
+    Chart_Type chartType;
+    QPushButton *btn = qobject_cast<QPushButton*>(sender());
+    if(btn == ui->m_addBtn) chartType = ANALOG_TYPE;
+    else chartType = DIGITAL_TYPE;
 
-    ChartData cdata;
-    cdata.id = data.id;
-    cdata.name = data.variateName;
-    cdata.length = data.length;
-    cdata.show = true;
-    cdata.star = false;
-    cdata.color = getRandomColor();
-    addVariable(cdata);
-    ++id;
+
+    if(m_configDlg)
+    {
+        m_configDlg->setType(configureType, chartType);
+        m_configDlg->setReadyVariates(ui->m_view->getAllVariableIds());
+    }
+    else
+    {
+        m_configDlg = new ConfigureDialog(configureType, chartType);
+        // configure dialog
+        connect(m_configDlg, SIGNAL(addVariateData(VariateData,bool)), this, SLOT(addVariateData(VariateData,bool)));
+    }
+    m_configDlg->show();
 }
 
-void ChartPlot::addDigitalVariate()
+void ChartPlot::addVariateData(const VariateData &data, bool add)
 {
-    static int id = 100;
-    VariateData data;
-    data.id = QString::number(id);
-    data.variateName = QString("信号%1").arg(id);
-    data.length = 1;
-
-    ChartData cdata;
-    cdata.id = data.id;
-    cdata.name = data.variateName;
-    cdata.length = data.length;
-    cdata.show = true;
-    cdata.star = false;
-    cdata.color = getRandomColor();
-    addVariable(cdata);
-    ++id;
+    if(add)
+    {
+        // add
+        ChartData cdata;
+        cdata.id = data.id;
+        cdata.name = data.variateName;
+        cdata.length = data.length;
+        cdata.show = true;
+        cdata.star = false;
+        cdata.color = getRandomColor();
+        addVariable(cdata);
+    }
+    else
+    {
+        // remove
+        if(data.length == 1)
+            m_model_d->removeVariateData(data.id);
+        else
+            m_model->removeVariateData(data.id);
+        ui->m_view->removeVariable(data.id);
+    }
 }
-
-
 
 unsigned ChartPlot::getRandomColor() const
 {

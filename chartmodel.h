@@ -37,7 +37,8 @@ signals:
     void colorChanged(QString id, unsigned color);
 
 public:
-    void addVariate(const ChartData &data);
+    void addVariateData(const ChartData &data);
+    void removeVariateData(const QString &id);
 
 
 public slots:

@@ -129,11 +129,33 @@ bool ChartModel::removeRow(int row, const QModelIndex &parent)
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-void ChartModel::addVariate(const ChartData &data)
+void ChartModel::addVariateData(const ChartData &data)
 {
     beginResetModel();
-    m_data.append(data);
-    m_id_row_map[data.id] = m_data.size() - 1;
+    if(m_id_row_map.contains(data.id))
+    {
+        qDebug() << "variable has already in panel";
+        return;
+    }
+    else
+    {
+        m_data.append(data);
+        m_id_row_map[data.id] = m_data.size() - 1;
+    }
+    endResetModel();
+}
+
+void ChartModel::removeVariateData(const QString &id)
+{
+    beginResetModel();
+    if(m_id_row_map.contains(id))
+    {
+        removeRow(m_id_row_map[id], QModelIndex());
+    }
+    else
+    {
+        qDebug() << "m_id_row_map not contains " << id;
+    }
     endResetModel();
 }
 

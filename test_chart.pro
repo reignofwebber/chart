@@ -33,7 +33,9 @@ SOURCES += \
     chartdelegate.cpp \
     chartsettingsdls.cpp \
     cursoritem.cpp \
-    chartview.cpp
+    chartview.cpp \
+    configuredialog.cpp \
+    dataconfigure.cpp
 
 HEADERS += \
     testthread.h \
@@ -44,13 +46,17 @@ HEADERS += \
     chartdelegate.h \
     chartview.h \
     chartsettingsdls.h \
-    cursoritem.h
+    cursoritem.h \
+    analyze_types.h \
+    configuredialog.h \
+    dataconfigure.h
 
 FORMS += \
         mainwindow.ui \
     chartpanel.ui \
     testform.ui \
-    chartsettingsdlg.ui
+    chartsettingsdlg.ui \
+    configuredialog.ui
 
 RESOURCES += \
     chart.qrc

@@ -6,6 +6,8 @@
 #include <QDebug>
 #include <tuple>
 
+#include "analyze_types.h"
+
 namespace QtCharts {
     class QChart;
     class QLineSeries;
@@ -24,24 +26,18 @@ class ChartView : public QtCharts::QChartView
     Q_OBJECT
 
 public:
-    enum ChartType
-    {
-        ANALOG_TYPE,
-        DIGITAL_TYPE
-    };
-public:
     ChartView(QWidget *parent = 0);
 
     //
-    void setChartBold(ChartType type, const QString &id, bool bold);
+    void setChartBold(Chart_Type type, const QString &id, bool bold);
     //
     void setChartHalf();
-    void setChartFull(ChartType type);
-    void setChartShow(ChartType type, bool show);
+    void setChartFull(Chart_Type type);
+    void setChartShow(Chart_Type type, bool show);
 
     //
-    void addVariable(ChartType type, const QString &id, const QString &name, unsigned color);
-    void removeVariable(ChartType type, const QString &id);
+    void addVariable(Chart_Type type, const QString &id, const QString &name, unsigned color);
+    void removeVariable(const QString &id);
     // 为变量ID加点
     void addPoint(QString id, qreal time, qreal val);
     // 获取所有变量id
